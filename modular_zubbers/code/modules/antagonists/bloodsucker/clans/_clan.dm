@@ -32,10 +32,12 @@
 	var/buy_power_flags = BLOODSUCKER_CAN_BUY
 	// what percentage of blood you need to spend to level up, divided by 100
 	var/level_cost = BLOODSUCKER_LEVELUP_PERCENTAGE
+	var/blood_volume_per_level = 100
+	var/regeneration_modifier_per_level = 0.05
 
 /datum/bloodsucker_clan/New(datum/antagonist/bloodsucker/owner_datum)
 	. = ..()
-	src.bloodsuckerdatum = owner_datum
+	bloodsuckerdatum = WEAKREF(thing)
 
 	RegisterSignal(bloodsuckerdatum, COMSIG_BLOODSUCKER_ON_LIFETICK, PROC_REF(handle_clan_life))
 	RegisterSignal(bloodsuckerdatum, COMSIG_BLOODSUCKER_RANK_UP, PROC_REF(on_spend_rank))
@@ -68,6 +70,22 @@
 	remove_clan_objective()
 	bloodsuckerdatum = null
 	return ..()
+
+/datum/bloodsucker_clan/proc/get_level_cost()
+	var/percentage_needed = my_clan ? my_clan.level_cost : BLOODSUCKER_LEVELUP_PERCENTAGE
+	return max_blood_volume * percentage_needed
+
+/datum/bloodsucker_clan/proc/free_ghoul_slots()
+	return max(max_ghouls() - length(ghouls), 0)
+
+/datum/bloodsucker_clan/proc/max_ghouls()
+	return my_clan ? my_clan.max_ghouls() : 0
+
+/datum/bloodsucker_clan/proc/frenzy_enter_threshold()
+	return FRENZY_THRESHOLD_ENTER + (humanity_lost * 10)
+
+/datum/bloodsucker_clan/proc/frenzy_exit_threshold()
+	return FRENZY_THRESHOLD_EXIT + (humanity_lost * 10)
 
 /datum/bloodsucker_clan/proc/on_enter_frenzy(datum/antagonist/bloodsucker/source)
 	SIGNAL_HANDLER
@@ -149,10 +167,10 @@
 
 	INVOKE_ASYNC(src, PROC_REF(spend_rank), bloodsuckerdatum, cost_rank, blood_cost)
 
-/datum/bloodsucker_clan/proc/spend_rank(datum/antagonist/bloodsucker/source, cost_rank = TRUE, blood_cost, requires_coffin = TRUE)
+/datum/bloodsucker_clan/proc/spend_rank(datum/antagonist/bloodsucker/source, cost_rank = TRUE, blood_cost, requires_coffin = TRUE) //Artur is a godsend
 	var/list/options = list_available_powers()
 	if(length(options))
-		var/datum/action/cooldown/bloodsucker/choice = choose_powers(
+		var/choice = choose_powers(
 			"You have the opportunity to grow more ancient. [blood_cost > 0 ? " Spend [round(blood_cost, 1)] blood to advance your rank" : ""]",
 			"Your Blood Thickens...",
 			options
@@ -202,8 +220,8 @@
 
 /datum/bloodsucker_clan/proc/finalize_spend_rank(datum/antagonist/bloodsucker/source, cost_rank = TRUE, blood_cost)
 	level_up_powers(source)
-	bloodsuckerdatum.bloodsucker_regen_rate += 0.05
-	bloodsuckerdatum.max_blood_volume += 100
+	bloodsuckerdatum.bloodsucker_regen_rate += regeneration_modifier_per_level
+	bloodsuckerdatum.max_blood_volume += blood_volume_per_level
 
 	if(ishuman(bloodsuckerdatum.owner.current))
 		var/mob/living/carbon/human/human_user = bloodsuckerdatum.owner.current

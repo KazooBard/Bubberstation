@@ -198,23 +198,23 @@
 	return max_blood_volume * percentage_needed
 
 /datum/antagonist/bloodsucker/proc/max_ghouls()
-	return round(bloodsucker_level * 0.5)
+	return my_clan ? my_clan.get_max_ghouls() : 0
 
 /datum/antagonist/bloodsucker/proc/free_ghoul_slots()
-	return max(max_ghouls() - length(ghouls), 0)
+	return my_clan ? : my_clan.free_ghoul_slots() : 0
 
 /datum/antagonist/bloodsucker/proc/frenzy_enter_threshold()
-	return FRENZY_THRESHOLD_ENTER + (humanity_lost * 10)
+	return my_clan ? : my_clan.frenzy_exit_threshold() : FRENZY_THRESHOLD_ENTER
 
 /datum/antagonist/bloodsucker/proc/frenzy_exit_threshold()
-	return FRENZY_THRESHOLD_EXIT + (humanity_lost * 10)
+	return my_clan ? : my_clan.frenzy_exit_threshold() : FRENZY_THRESHOLD_EXIT
 
 /datum/antagonist/bloodsucker/proc/on_organ_removal(mob/living/carbon/old_owner, obj/item/organ/organ, special)
 	SIGNAL_HANDLER
 	if(old_owner?.get_organ_slot(ORGAN_SLOT_HEART) || organ?.slot != ORGAN_SLOT_HEART || !old_owner?.dna?.species.mutantheart)
 		return
 	DisableAllPowers(TRUE)
-	if(HAS_TRAIT_FROM_ONLY(old_owner, TRAIT_NODEATH, BLOODSUCKER_TRAIT))
+	if(HAS_TRAIT_FROM_ONLY(old_owner, TRAIT_DEATHCOMA, BLOODSUCKER_TRAIT))
 		torpor_end(TRUE)
 	to_chat(old_owner, span_userdanger("You have lost your [organ.slot]!"))
 	to_chat(old_owner, span_warning("This means you will no longer enter torpor nor revive from death, and you will no longer heal any damage, nor can you use your abilities."))

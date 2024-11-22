@@ -48,6 +48,8 @@
 	///ALL Powers currently owned
 	var/list/datum/action/cooldown/bloodsucker/powers = list()
 
+	var/list/datum/bloodsucker_upgrade/upgrades = list()
+
 	///Ghouls under my control. Periodically remove the dead ones.
 	var/list/datum/antagonist/ghoul/ghouls = list()
 	///Special ghouls I own, to not have double of the same type.
@@ -78,6 +80,8 @@
 
 	/// Static typecache of all bloodsucker powers.
 	var/static/list/all_bloodsucker_powers = typecacheof(/datum/action/cooldown/bloodsucker, ignore_root_path = TRUE)
+	/// I guess we doing static typecaches now
+	var/static/list/all_bloodsucker_upgrades = typecacheof(/datum/bloodsucker_upgrade, ignore_root_path = TRUE)
 	/// Antagonists that cannot be Ghouled no matter what
 	var/static/list/ghoul_banned_antags = list(
 		/datum/antagonist/bloodsucker,
@@ -416,6 +420,8 @@
 		if(!(initial(all_powers.purchase_flags) & BLOODSUCKER_DEFAULT_POWER))
 			continue
 		BuyPower(all_powers)
+	for(var/datum/bloodsucker_upgrade/all_bloodsucker_upgrades as anything in all_bloodsucker_upgrades)
+		if(!(initial(all_upgrades.purchase_flags) & BLOODSUCKER_DEFAULT_POWER))
 
 /datum/antagonist/bloodsucker/proc/assign_starting_stats()
 	//Traits: Species
@@ -460,6 +466,8 @@
 	// Powers
 	for(var/datum/action/cooldown/bloodsucker/all_powers as anything in powers)
 		RemovePower(all_powers)
+	for(var/datum/bloodsucker_upgrade/all_upgrades as anything in upgrades)
+		RemovePower(all_upgrades)
 	if(QDELETED(owner.current))
 		return
 	/// Stats

@@ -34,10 +34,10 @@
 /datum/bloodsucker_clan/brujah
 	name = CLAN_BRUJAH
 	description = "The Brujah Clan has proven to be the strongest in melee combat, boasting a powerful punch. \n\
-		They also appear to be more calm than the others, entering their 'frenzies' whenever they want, but dont seem affected much by them. \n\
-		Be wary, as they are fearsome warriors, rebels and anarchists, with an inclination towards Frenzy. \n\
-		The Favorite Ghoul gains brawn and a massive increase in brute damage from punching."
-	joinable_clan = FALSE
+		Whereas they struggle in hiding their fierce bite, aiming for the vocal chords mutes any victims of these predators. \n\
+		Be wary, as they are fearsome warriors, rebels and anarchists, who are incredibly durable, yet boast no tricks such as tresspass. \n\
+		Due to their violent outbursts they cannot have any ghouls."
+	joinable_clan = TRUE
 
 /datum/bloodsucker_clan/tzimisce
 	name = CLAN_TZIMISCE

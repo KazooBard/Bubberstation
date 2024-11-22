@@ -13,6 +13,11 @@
 	mood_change = -7
 	timeout = 8 MINUTES
 
+/datum/mood_event/drankblood_dishonorable
+	description = "<span class='boldwarning'>I drank kindred blood. Such backstabbing is below me..</span>\n"
+	mood_change = -7
+	timeout = 8 MINUTES
+
 /datum/mood_event/drankblood_synth
 	description = "<span class='boldwarning'>I drank synthetic blood. What is wrong with me?</span>\n"
 	mood_change = -7

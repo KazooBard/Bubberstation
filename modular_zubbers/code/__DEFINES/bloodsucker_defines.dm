@@ -29,9 +29,12 @@
 /// a bloodsucker can't loose more humanity than this, and looses the masquerade ability when reaching it
 #define HUMANITY_LOST_MAXIMUM 50
 
+#define BRUJAH_BLOOD_VOLUME_PER_LEVEL 25
+
 /// Level up blood cost define, max_blood * this = blood cost
 #define BLOODSUCKER_LEVELUP_PERCENTAGE 0.45
 #define BLOODSUCKER_LEVELUP_PERCENTAGE_VENTRUE BLOODSUCKER_LEVELUP_PERCENTAGE - 0.1
+#define BLOODSUCKER_LEVELUP_PERCENTAGE_BRUJAH BLOODSUCKER_LEVELUP_PERCENTAGE - BRUJAH_BLOOD_VOLUME_PER_LEVEL // TODO figure out how to math this so it's the same cost it is for normal vamps
 
 ///The level when at a bloodsucker becomes snobby about who they drink from and gain their non-fledling reputation
 #define BLOODSUCKER_HIGH_LEVEL 4
@@ -116,6 +119,7 @@
 #define BLOODSUCKER_DEFAULT_POWER (1<<1)
 /// This Power can be purchased by Tremere Bloodsuckers
 #define TREMERE_CAN_BUY (1<<2)
+#define BRUJAH_CAN_BUY (1<<2)
 
 /// This Power can be purchased by Ghouls
 #define GHOUL_CAN_BUY (1<<3)
@@ -216,6 +220,8 @@
 #define BLOODSUCKER_DRINK_SNOBBY "bloodsucker_drink_snobby"
 ///Drinks blood from disgusting creatures without Humanity consequences.
 #define BLOODSUCKER_DRINK_INHUMANELY "bloodsucker_drink_inhumanely"
+//Always seen when feeding, but throatrips by default and silences targets when feeding.
+#define BLOODSUCKER_DRINK_SLOPPILY "bloodsucker_drink_sloppily"
 
 /**
  * Traits
@@ -230,6 +236,7 @@
  */
 /// Source trait for Bloodsuckers-related traits
 #define BLOODSUCKER_TRAIT "bloodsucker_trait"
+#define TORPOR_TRAIT "torpor_trait"
 
 #define GHOUL_TRAIT "ghoul_trait"
 

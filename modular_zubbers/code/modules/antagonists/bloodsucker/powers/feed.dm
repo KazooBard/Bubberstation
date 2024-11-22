@@ -94,7 +94,7 @@
 	else
 		log_combat(user, feed_target, "fed on blood", addition="(and took [blood_taken] blood)")
 		to_chat(user, span_notice("You slowly release [feed_target]."))
-		if(feed_target.client && feed_target.stat == DEAD)
+		if(feed_target.client && feed_target.stat == DEAD && bloodsuckerdatum_power.my_clan.blood_drink_type != BLOODSUCKER_DRINK_SLOPPILY)
 			user.add_mood_event("drankkilled", /datum/mood_event/drankkilled)
 			bloodsuckerdatum_power.AddHumanityLost(5)
 
@@ -132,6 +132,10 @@
 		owner.balloon_alert(owner, "feed stopped")
 		target_ref = null
 		return FALSE
+
+	return start_feed()
+
+/datum/action/cooldown/bloodsucker/feed/proc/start_feed()
 	if(owner.pulling == feed_target && owner.grab_state >= GRAB_AGGRESSIVE)
 		if(!IS_BLOODSUCKER(feed_target) && !IS_GHOUL(feed_target) && !IS_MONSTERHUNTER(feed_target))
 			feed_target.Unconscious(get_sleep_time())
@@ -141,13 +145,6 @@
 			span_warning("[owner] closes [owner.p_their()] mouth around [feed_target]'s neck!"),
 			span_warning("You sink your fangs into [feed_target]'s neck."))
 		silent_feed = FALSE //no more mr nice guy
-	else
-		// Only people who AREN'T the target will notice this action.
-		var/dead_message = feed_target.stat != DEAD ? " <i>[feed_target.p_they(TRUE)] looks dazed, and will not remember this.</i>" : ""
-		owner.visible_message(
-			span_warning("[owner] puts [feed_target]'s wrist up to [owner.p_their()] mouth."), \
-			span_notice("You slip your fangs into [feed_target]'s wrist.[dead_message]"), \
-			vision_distance = FEED_NOTICE_RANGE, ignored_mobs = feed_target)
 
 	//check if we were seen
 	for(var/mob/living/watchers in oviewers(FEED_NOTICE_RANGE) - feed_target)
@@ -170,6 +167,61 @@
 	RegisterSignal(owner, COMSIG_MOB_CLIENT_PRE_LIVING_MOVE, PROC_REF(notify_move_block))
 	return TRUE
 
+/datum/action/cooldown/bloodsucker/feed/proc/start_feed_silent()
+	if(!(owner.pulling == feed_target && owner.grab_state >= GRAB_AGGRESSIVE))
+		var/dead_message = feed_target.stat != DEAD ? " <i>[feed_target.p_they(TRUE)] looks dazed, and will not remember this.</i>" : ""
+		owner.visible_message(
+			span_warning("[owner] puts [feed_target]'s wrist up to [owner.p_their()] mouth."), \
+			span_notice("You slip your fangs into [feed_target]'s wrist.[dead_message]"), \
+			vision_distance = FEED_NOTICE_RANGE, ignored_mobs = feed_target)
+
+	for(var/mob/living/watchers in oviewers(FEED_NOTICE_RANGE) - feed_target)
+		if(!watchers.client)
+			continue
+		if(watchers.has_unlimited_silicon_privilege)
+			continue
+		if(watchers.stat >= DEAD)
+			continue
+		if(watchers.is_blind() || watchers.is_nearsighted_currently())
+			continue
+		if(IS_BLOODSUCKER(watchers) || IS_GHOUL(watchers) || HAS_TRAIT(watchers.mind, TRAIT_BLOODSUCKER_HUNTER))
+			continue
+		owner.balloon_alert(owner, "feed noticed!")
+		bloodsuckerdatum_power.give_masquerade_infraction()
+		break
+
+	ADD_TRAIT(owner, TRAIT_MUTE, FEED_TRAIT)
+	ADD_TRAIT(owner, TRAIT_IMMOBILIZED, FEED_TRAIT)
+	RegisterSignal(owner, COMSIG_MOB_CLIENT_PRE_LIVING_MOVE, PROC_REF(notify_move_block))
+	return TRUE
+
+
+/datum/action/cooldown/bloodsucker/feed/proc/throat_rip(mob/user, mob/living/feed_target)
+	if(!should_throat_rip())
+		return
+	user.visible_message(
+		span_warning("[user] is ripped from [feed_target]'s throat. [feed_target.p_Their(TRUE)] blood sprays everywhere!"),
+		span_warning("Your teeth are ripped from [feed_target]'s throat. [feed_target.p_Their(TRUE)] blood sprays everywhere!"))
+	// Deal Damage to Target (should have been more careful!)
+	if(iscarbon(feed_target))
+		var/mob/living/carbon/carbon_target = feed_target
+		carbon_target.bleed(15)
+	playsound(get_turf(feed_target), 'sound/effects/splat.ogg', 40, TRUE)
+	if(ishuman(feed_target))
+		var/mob/living/carbon/human/target_user = feed_target
+		var/obj/item/bodypart/head_part = target_user.get_bodypart(BODY_ZONE_HEAD)
+		if(head_part)
+			head_part.generic_bleedstacks += 5
+	feed_target.add_splatter_floor(get_turf(feed_target))
+	user.add_mob_blood(feed_target) // Put target's blood on us. The donor goes in the ( )
+	feed_target.add_mob_blood(feed_target)
+	feed_target.apply_damage(10, BRUTE, BODY_ZONE_HEAD, wound_bonus = CANT_WOUND)
+	INVOKE_ASYNC(feed_target, TYPE_PROC_REF(/mob, emote), "scream")
+	return FALSE
+
+/datum/action/cooldown/bloodsucker/feed/proc/should_throat_rip()
+	return !silent_feed
+
 /datum/action/cooldown/bloodsucker/feed/process(seconds_per_tick)
 	if(!active) //If we aren't active (running on SSfastprocess)
 		return ..() //Manage our cooldown timers
@@ -179,25 +231,7 @@
 		DeactivatePower()
 		return
 	if(!ContinueActive(user, feed_target, !silent_feed, !silent_feed))
-		if(!silent_feed)
-			user.visible_message(
-				span_warning("[user] is ripped from [feed_target]'s throat. [feed_target.p_Their(TRUE)] blood sprays everywhere!"),
-				span_warning("Your teeth are ripped from [feed_target]'s throat. [feed_target.p_Their(TRUE)] blood sprays everywhere!"))
-			// Deal Damage to Target (should have been more careful!)
-			if(iscarbon(feed_target))
-				var/mob/living/carbon/carbon_target = feed_target
-				carbon_target.bleed(15)
-			playsound(get_turf(feed_target), 'sound/effects/splat.ogg', 40, TRUE)
-			if(ishuman(feed_target))
-				var/mob/living/carbon/human/target_user = feed_target
-				var/obj/item/bodypart/head_part = target_user.get_bodypart(BODY_ZONE_HEAD)
-				if(head_part)
-					head_part.generic_bleedstacks += 5
-			feed_target.add_splatter_floor(get_turf(feed_target))
-			user.add_mob_blood(feed_target) // Put target's blood on us. The donor goes in the ( )
-			feed_target.add_mob_blood(feed_target)
-			feed_target.apply_damage(10, BRUTE, BODY_ZONE_HEAD, wound_bonus = CANT_WOUND)
-			INVOKE_ASYNC(feed_target, TYPE_PROC_REF(/mob, emote), "scream")
+		throat_rip()
 		DeactivatePower()
 		return
 
@@ -219,8 +253,13 @@
 	// Drank mindless as Ventrue? - BAD
 	if((bloodsuckerdatum_power.my_clan && bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SNOBBY) && !feed_target.mind)
 		user.add_mood_event("drankblood", /datum/mood_event/drankblood_bad)
+	// Brujah does not care from where the blood flows
 	if(feed_target.stat >= DEAD)
-		user.add_mood_event("drankblood", /datum/mood_event/drankblood_dead)
+		if(!(bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SLOPPILY && feed_target.mind))
+			user.add_mood_event("drankblood", /datum/mood_event/drankblood_dead)
+			return
+	if(feed_target.mind && feed_target.mind?.has_antag_datum(/datum/antagonist/bloodsucker) || feed_target.mind?.has_antag_datum(/datum/antagonist/ghoul))
+		user.add_mood_event("drankblood", /datum/mood_event/drankblood_dishonorable)
 
 	if(!IS_BLOODSUCKER(feed_target))
 		if(feed_target.blood_volume <= BLOOD_VOLUME_BAD && warning_target_bloodvol > BLOOD_VOLUME_BAD)
