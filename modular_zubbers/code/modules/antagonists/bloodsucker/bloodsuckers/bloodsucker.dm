@@ -420,8 +420,6 @@
 		if(!(initial(all_powers.purchase_flags) & BLOODSUCKER_DEFAULT_POWER))
 			continue
 		BuyPower(all_powers)
-	for(var/datum/bloodsucker_upgrade/all_bloodsucker_upgrades as anything in all_bloodsucker_upgrades)
-		if(!(initial(all_upgrades.purchase_flags) & BLOODSUCKER_DEFAULT_POWER))
 
 /datum/antagonist/bloodsucker/proc/assign_starting_stats()
 	//Traits: Species

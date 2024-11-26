@@ -34,10 +34,12 @@
 	var/level_cost = BLOODSUCKER_LEVELUP_PERCENTAGE
 	var/blood_volume_per_level = 100
 	var/regeneration_modifier_per_level = 0.05
+	var/frenzy_threshold_enter = FRENZY_THRESHOLD_ENTER
+	var/frenzy_threshold_exit = FRENZY_THRESHOLD_EXIT
 
 /datum/bloodsucker_clan/New(datum/antagonist/bloodsucker/owner_datum)
 	. = ..()
-	bloodsuckerdatum = WEAKREF(thing)
+	bloodsuckerdatum = WEAKREF(owner_datum)
 
 	RegisterSignal(bloodsuckerdatum, COMSIG_BLOODSUCKER_ON_LIFETICK, PROC_REF(handle_clan_life))
 	RegisterSignal(bloodsuckerdatum, COMSIG_BLOODSUCKER_RANK_UP, PROC_REF(on_spend_rank))
@@ -71,21 +73,21 @@
 	bloodsuckerdatum = null
 	return ..()
 
+// here so different clans can modify them on need
 /datum/bloodsucker_clan/proc/get_level_cost()
-	var/percentage_needed = my_clan ? my_clan.level_cost : BLOODSUCKER_LEVELUP_PERCENTAGE
-	return max_blood_volume * percentage_needed
+	return bloodsuckerdatum.max_blood_volume * level_cost
 
 /datum/bloodsucker_clan/proc/free_ghoul_slots()
-	return max(max_ghouls() - length(ghouls), 0)
+	return max(max_ghouls() - length(bloodsuckerdatum.ghouls), 0)
 
 /datum/bloodsucker_clan/proc/max_ghouls()
-	return my_clan ? my_clan.max_ghouls() : 0
+	return bloodsuckerdatum.max_ghouls()
 
 /datum/bloodsucker_clan/proc/frenzy_enter_threshold()
-	return FRENZY_THRESHOLD_ENTER + (humanity_lost * 10)
+	return frenzy_threshold_enter + (bloodsuckerdatum.GetHumanityLost() * 10)
 
 /datum/bloodsucker_clan/proc/frenzy_exit_threshold()
-	return FRENZY_THRESHOLD_EXIT + (humanity_lost * 10)
+	return frenzy_threshold_exit + (bloodsuckerdatum.GetHumanityLost() * 10)
 
 /datum/bloodsucker_clan/proc/on_enter_frenzy(datum/antagonist/bloodsucker/source)
 	SIGNAL_HANDLER
@@ -179,11 +181,12 @@
 			return FALSE
 		// Good to go - Buy Power!
 		purchase_choice(source, choice)
-		level_message(initial(choice.name))
+		level_message(choice)
 
 	return finalize_spend_rank(bloodsuckerdatum, cost_rank, blood_cost)
 
-/datum/bloodsucker_clan/proc/level_message(power_name)
+/datum/bloodsucker_clan/proc/level_message(datum/action/cooldown/bloodsucker/power_path)
+	var/power_name = initial(power_path.name)
 	var/mob/living/carbon/human/human_user = bloodsuckerdatum.owner.current
 	human_user.balloon_alert(human_user, "learned [power_name]!")
 	to_chat(human_user, span_notice("You have learned how to use [power_name]!"))

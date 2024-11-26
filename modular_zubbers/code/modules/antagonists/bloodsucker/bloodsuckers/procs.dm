@@ -35,6 +35,29 @@
 		if(power?.type == power_to_remove)
 			RemovePower(power)
 
+/datum/antagonist/bloodsucker/proc/BuyUpgrades(list/upgrades = list())
+	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades)
+		BuyUpgrade(upgrade)
+
+/datum/antagonist/bloodsucker/proc/BuyUpgrade(datum/bloodsucker_upgrade/upgrade)
+	for(var/datum/bloodsucker_upgrade/current_upgrade as anything in upgrades)
+		if(current_upgrade.type == upgrade.type)
+			return null
+	upgrade = new upgrade()
+	upgrade += upgrade
+	upgrade.on_gain(owner.current)
+	log_uplink("[key_name(owner.current)] purchased [upgrade].")
+	return upgrade
+
+/datum/antagonist/bloodsucker/proc/RemoveUpgrade(datum/bloodsucker_upgrade/upgrade)
+	upgrade.on_loss(owner.current)
+	powers -= upgrade
+
+/datum/antagonist/bloodsucker/proc/RemoveUpgradesByPath(datum/action/cooldown/bloodsucker/power_to_remove)
+	for(var/datum/action/cooldown/bloodsucker/power as anything in powers)
+		if(power?.type == power_to_remove)
+			RemovePower(power)
+
 ///When a Bloodsucker breaks the Masquerade, they get their HUD icon changed, and Malkavian Bloodsuckers get alerted.
 /datum/antagonist/bloodsucker/proc/break_masquerade(mob/admin)
 	if(broke_masquerade)
@@ -198,16 +221,16 @@
 	return max_blood_volume * percentage_needed
 
 /datum/antagonist/bloodsucker/proc/max_ghouls()
-	return my_clan ? my_clan.get_max_ghouls() : 0
+	return my_clan ? my_clan.max_ghouls() : 0
 
 /datum/antagonist/bloodsucker/proc/free_ghoul_slots()
-	return my_clan ? : my_clan.free_ghoul_slots() : 0
+	return my_clan ? my_clan.free_ghoul_slots() : 0
 
 /datum/antagonist/bloodsucker/proc/frenzy_enter_threshold()
-	return my_clan ? : my_clan.frenzy_exit_threshold() : FRENZY_THRESHOLD_ENTER
+	return my_clan ? my_clan.frenzy_exit_threshold() : FRENZY_THRESHOLD_ENTER
 
 /datum/antagonist/bloodsucker/proc/frenzy_exit_threshold()
-	return my_clan ? : my_clan.frenzy_exit_threshold() : FRENZY_THRESHOLD_EXIT
+	return my_clan ? my_clan.frenzy_exit_threshold() : FRENZY_THRESHOLD_EXIT
 
 /datum/antagonist/bloodsucker/proc/on_organ_removal(mob/living/carbon/old_owner, obj/item/organ/organ, special)
 	SIGNAL_HANDLER
