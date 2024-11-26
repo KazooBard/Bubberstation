@@ -35,6 +35,8 @@
 	var/notified_overfeeding = FALSE
 	///assoc list of weakrefs to targets and how much blood we've taken from them.
 	var/list/targets_and_blood = list()
+	/// Traits it gives to the owner when blood is being drunk from them
+	var/list/owner_traits = list(TRAIT_IMMOBILIZED, TRAIT_MUTE)
 
 /datum/action/cooldown/bloodsucker/feed/get_power_explanation_extended()
 	. = list()
@@ -79,8 +81,7 @@
 /datum/action/cooldown/bloodsucker/feed/DeactivatePower(deactivate_flags)
 	// run before parent checks just to ensure that this always gets cleaned up
 	UnregisterSignal(owner, COMSIG_MOB_CLIENT_PRE_LIVING_MOVE)
-	REMOVE_TRAIT(owner, TRAIT_IMMOBILIZED, FEED_TRAIT)
-	REMOVE_TRAIT(owner, TRAIT_MUTE, FEED_TRAIT)
+	owner.remove_traits(owner_traits, FEED_TRAIT)
 	. = ..()
 	if(!.)
 		return
@@ -105,8 +106,11 @@
 
 /datum/action/cooldown/bloodsucker/feed/ActivatePower(atom/target)
 	// if this happens this means that we didn't properly deactivate the power
-	if(HAS_TRAIT_FROM(owner, TRAIT_IMMOBILIZED, FEED_TRAIT) || HAS_TRAIT_FROM(owner, TRAIT_MUTE, FEED_TRAIT))
-		DeactivatePower()
+	for(var/trait in owner_traits)
+		if(HAS_TRAIT_FROM(owner, trait, FEED_TRAIT))
+			DeactivatePower()
+			return
+
 	silent_feed = TRUE
 	var/mob/living/feed_target = target_ref?.resolve()
 	if(!feed_target)
@@ -133,18 +137,13 @@
 		target_ref = null
 		return FALSE
 
-	return start_feed()
+	return start_feed(feed_target)
 
-/datum/action/cooldown/bloodsucker/feed/proc/start_feed()
+/datum/action/cooldown/bloodsucker/feed/proc/start_feed(mob/living/feed_target)
 	if(owner.pulling == feed_target && owner.grab_state >= GRAB_AGGRESSIVE)
-		if(!IS_BLOODSUCKER(feed_target) && !IS_GHOUL(feed_target) && !IS_MONSTERHUNTER(feed_target))
-			feed_target.Unconscious(get_sleep_time())
-		if(!feed_target.density)
-			feed_target.Move(owner.loc)
-		owner.visible_message(
-			span_warning("[owner] closes [owner.p_their()] mouth around [feed_target]'s neck!"),
-			span_warning("You sink your fangs into [feed_target]'s neck."))
-		silent_feed = FALSE //no more mr nice guy
+		start_feed_aggressive(feed_target)
+	else
+		start_feed_silent(feed_target)
 
 	//check if we were seen
 	for(var/mob/living/watchers in oviewers(FEED_NOTICE_RANGE) - feed_target)
@@ -162,39 +161,27 @@
 		bloodsuckerdatum_power.give_masquerade_infraction()
 		break
 
-	ADD_TRAIT(owner, TRAIT_MUTE, FEED_TRAIT)
-	ADD_TRAIT(owner, TRAIT_IMMOBILIZED, FEED_TRAIT)
+	owner.add_traits(owner_traits, FEED_TRAIT)
 	RegisterSignal(owner, COMSIG_MOB_CLIENT_PRE_LIVING_MOVE, PROC_REF(notify_move_block))
 	return TRUE
 
-/datum/action/cooldown/bloodsucker/feed/proc/start_feed_silent()
+/datum/action/cooldown/bloodsucker/feed/proc/start_feed_aggressive(mob/living/feed_target)
+	if(!IS_BLOODSUCKER(feed_target) && !IS_GHOUL(feed_target) && !IS_MONSTERHUNTER(feed_target))
+		feed_target.Unconscious(get_sleep_time())
+	if(!feed_target.density)
+		feed_target.Move(owner.loc)
+	owner.visible_message(
+		span_warning("[owner] closes [owner.p_their()] mouth around [feed_target]'s neck!"),
+		span_warning("You sink your fangs into [feed_target]'s neck."))
+	silent_feed = FALSE //no more mr nice guy
+
+/datum/action/cooldown/bloodsucker/feed/proc/start_feed_silent(mob/living/feed_target)
 	if(!(owner.pulling == feed_target && owner.grab_state >= GRAB_AGGRESSIVE))
 		var/dead_message = feed_target.stat != DEAD ? " <i>[feed_target.p_they(TRUE)] looks dazed, and will not remember this.</i>" : ""
 		owner.visible_message(
 			span_warning("[owner] puts [feed_target]'s wrist up to [owner.p_their()] mouth."), \
 			span_notice("You slip your fangs into [feed_target]'s wrist.[dead_message]"), \
 			vision_distance = FEED_NOTICE_RANGE, ignored_mobs = feed_target)
-
-	for(var/mob/living/watchers in oviewers(FEED_NOTICE_RANGE) - feed_target)
-		if(!watchers.client)
-			continue
-		if(watchers.has_unlimited_silicon_privilege)
-			continue
-		if(watchers.stat >= DEAD)
-			continue
-		if(watchers.is_blind() || watchers.is_nearsighted_currently())
-			continue
-		if(IS_BLOODSUCKER(watchers) || IS_GHOUL(watchers) || HAS_TRAIT(watchers.mind, TRAIT_BLOODSUCKER_HUNTER))
-			continue
-		owner.balloon_alert(owner, "feed noticed!")
-		bloodsuckerdatum_power.give_masquerade_infraction()
-		break
-
-	ADD_TRAIT(owner, TRAIT_MUTE, FEED_TRAIT)
-	ADD_TRAIT(owner, TRAIT_IMMOBILIZED, FEED_TRAIT)
-	RegisterSignal(owner, COMSIG_MOB_CLIENT_PRE_LIVING_MOVE, PROC_REF(notify_move_block))
-	return TRUE
-
 
 /datum/action/cooldown/bloodsucker/feed/proc/throat_rip(mob/user, mob/living/feed_target)
 	if(!should_throat_rip())
