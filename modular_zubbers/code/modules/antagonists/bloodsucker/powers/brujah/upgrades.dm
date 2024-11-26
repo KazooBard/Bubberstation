@@ -1,17 +1,20 @@
 /datum/bloodsucker_upgrade
 	var/name = "coder did a coder, call a coder today!"
 	var/level_current = 0
+	var/purchase_flags = NONE
 
-/datum/bloodsucker_upgrade/proc/on_gain(mob/user)
-	to_chat(user, span_cult("buh"))
+/datum/bloodsucker_upgrade/proc/on_gain(mob/owner)
+	to_chat(owner, span_cult("something broke, invalid upgrade given"))
 
-/datum/bloodsucker_upgrade/proc/upgrade(mob/user)
+/datum/bloodsucker_upgrade/proc/upgrade(mob/owner)
+
+/datum/bloodsucker_upgrade/proc/on_loss(mob/owner)
 
 /datum/bloodsucker_upgrade/brujah/coding/on_gain(mob/user)
 	to_chat(user, span_cult("You feel your [name] grow in power..."))
 
 /datum/bloodsucker_upgrade/brujah/coding
-	name = "Coding" // coding skill ;)
+	name = "Coding" // coding skill ;)P
 
 /datum/bloodsucker_upgrade/brujah/offense
 	name = "offense"

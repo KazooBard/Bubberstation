@@ -9,30 +9,30 @@
 	buy_power_flags = CAN_BUY_OWNED|BRUJAH_CAN_BUY
 	blood_volume_per_level = BRUJAH_BLOOD_VOLUME_PER_LEVEL
 	regeneration_modifier_per_level = 0.1
-	frenzy_enter_threshold = 100
-	frenzy_exit_threshold = 200
-
+	frenzy_threshold_enter = 100
+	frenzy_threshold_exit = 200
 
 /datum/bloodsucker_clan/brujah/on_enter_frenzy(datum/antagonist/bloodsucker/source)
-	ADD_TRAIT(bloodsuckerdatum.owner.current, TRAIT_STUNIMMUNE, FRENZY_TRAIT)
-	bloodsucker.max_blood_volume = 600
+	ADD_TRAIT(source, TRAIT_STUNIMMUNE, FRENZY_TRAIT)
+	source.max_blood_volume = 600
 
 /datum/bloodsucker_clan/brujah/on_exit_frenzy(datum/antagonist/bloodsucker/source)
-	REMOVE_TRAIT(bloodsuckerdatum.owner.current, TRAIT_STUNIMMUNE, FRENZY_TRAIT)
+	REMOVE_TRAIT(source, TRAIT_STUNIMMUNE, FRENZY_TRAIT)
 
 /datum/bloodsucker_clan/brujah/New(datum/antagonist/bloodsucker/owner_datum)
 	. = ..()
 	ADD_TRAIT(bloodsuckerdatum.owner.current, TRAIT_TOSS_GUN_HARD, BLOODSUCKER_TRAIT)
-	bloodsucker.max_blood_volume = 300
-	bloodsuckerdatum.owner.current.playsound_local(get_turf(bloodsuckerdatum.owner.current), 'sound/effects/hallucinations/wail.ogg', 80, FALSE, pressure_affected = FALSE, use_reverb = FALSE)
-	to_chat(bloodsuckerdatum.owner.current, span_cult("You hunger..."))
-	bloodsuckerdatum.remove_nondefault_powers(return_levels = TRUE)
-	for(var/datum/action/cooldown/bloodsucker/upgrade as anything in bloodsuckerdatum.all_bloodsucker_upgrades)
-		if((initial(upgrade.purchase_flags) & buy_power_flags) && initial(power.level_current) == 1)
-			bloodsuckerdatum.BuyUpgrade(upgrade)
-	if(istype(power, /datum/action/cooldown/bloodsucker/masquerade) || istype(power, /datum/action/cooldown/bloodsucker/veil))
-		bloodsuckerdatum.RemovePower(power)
-	bloodsuckerdatum.AddPower(/datum/action/cooldown/bloodsucker/bloodshed	)
+	owner_datum.max_blood_volume = 300
+	owner_datum.owner.current.playsound_local(get_turf(owner_datum), 'sound/effects/hallucinations/wail.ogg', 80, FALSE, pressure_affected = FALSE, use_reverb = FALSE)
+	to_chat(owner_datum, span_cult("You hunger..."))
+	owner_datum.remove_nondefault_powers(return_levels = TRUE)
+	for(var/datum/bloodsucker_upgrade/upgrade as anything in owner_datum.all_bloodsucker_upgrades)
+		if((initial(upgrade.purchase_flags) & buy_power_flags) && initial(upgrade.level_current) == 1)
+			owner_datum.BuyUpgrade(upgrade)
+	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/masquerade)
+	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/veil)
+
+	// bloodsuckerdatum.AddPower(/datum/action/cooldown/bloodsucker/bloodshed)
 
 /datum/bloodsucker_clan/brujah/max_ghouls()
 	return 0
@@ -41,14 +41,13 @@
 	return 0
 
 /datum/bloodsucker_clan/brujah/Destroy(force)
-	UnregisterSignal(SSdcs, COMSIG_BLOODSUCKER_BROKE_MASQUERADE)
 	REMOVE_TRAIT(bloodsuckerdatum.owner.current, TRAIT_TOSS_GUN_HARD, BLOODSUCKER_TRAIT)
 	for(var/datum/action/cooldown/bloodsucker/power in bloodsuckerdatum.powers)
 		if(power.purchase_flags & buy_power_flags)
 			bloodsuckerdatum.RemovePower(power)
 	return ..()
 
-/datum/bloodsucker_clan/brujah/list_available_upgrades(already_known, upgrades_list)
+/datum/bloodsucker_clan/brujah/list_available_powers(already_known, upgrades_list)
 	var/list/options = list()
 	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades_list)
 		if(initial(upgrade.purchase_flags) & buy_power_flags && !(locate(upgrade) in already_known))
@@ -70,10 +69,3 @@
 	var/mob/living/carbon/human/human_user = bloodsuckerdatum.owner.current
 	human_user.balloon_alert(human_user, "upgraded [power_name]!")
 	to_chat(human_user, span_notice("You have upgraded [power_name]!"))
-
-// redefine the default args
-/datum/bloodsucker_clan/brujah/list_available_powers(already_known, powers_list)
-	return bloodsuckerdatum.upgrades
-
-/datum/bloodsucker_clan/brujah/purchase_choice(datum/antagonist/bloodsucker/source, /datum/bloodsucker_upgrade/upgrade)
-	return purchased_power.upgrade_power()
