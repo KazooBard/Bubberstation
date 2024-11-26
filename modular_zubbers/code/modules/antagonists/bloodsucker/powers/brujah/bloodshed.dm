@@ -6,10 +6,14 @@
 	check_flags = BP_CANT_USE_IN_TORPOR|BP_CANT_USE_IN_FRENZY
 	purchase_flags = BRUJAH_CAN_BUY
 	cooldown_time = 20 SECONDS
-	bloodcost = -(my.clan.frenzy_enter_threshold - owner.blood_volume)
+	bloodcost = 0
 
 /datum/action/cooldown/bloodsucker/bloodshedActivatePower(atom/target)
-	if(owner.blood_volume <= my_clan.frenzy_enter_threshold)
-	owner.balloon_alert(owner, "Bloodrage used!.")
-	to_chat(owner, span_notice("Your blood jettisons through every pore in your body, you feel lighter... and hungrier."))
+	if(owner.blood_volume <= owner.my_clan.frenzy_enter_threshold)
+		owner.balloon_alert(owner, "Losing more blood would kill you!")
+		!return
+	else
+		to_chat(owner, span_notice("Your blood sprays through every pore in your body in a crimson mist, you feel lighter... and hungrier."))
+		owner.blood_volume = owner.my_clan.frenzy_enter_threshold
+		return TRUE
 

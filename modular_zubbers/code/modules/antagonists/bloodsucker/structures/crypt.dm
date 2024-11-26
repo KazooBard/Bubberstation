@@ -504,7 +504,7 @@
 	vamp_desc = "This is a weeping skull which strikes terror into non Bloodsuckers and Ghouls..\n\
 		You can right-click on it from any range to turn it on remotely, or simply be next to it and click on it to turn it on and off normally."
 	ghoul_desc = "This is a weeping skull which strikes terror at mortals, as long as it is active. It signifies a brujah clan member aboard\n\
-		You can turn it on and off by clicking on it while you are next to it.
+		You can turn it on and off by clicking on it while you are next to it."
 	hunter_desc = "This is a weeping skull, which causes terror in non-vampires. It is used by brujah clan vampires."
 
 /obj/structure/bloodsucker/candelabrum/weepkingskull/process()
