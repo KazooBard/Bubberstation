@@ -496,6 +496,27 @@
 		nearly_people.adjust_hallucinations(5 SECONDS)
 		nearly_people.add_mood_event("vampcandle", /datum/mood_event/vampcandle)
 
+/obj/structure/bloodsucker/candelabrum/weepingskull
+	name = "weeping skull"
+	desc = "A head hung from a chain, eternally lamenting it's immortality."
+	ghost_desc = "This is a weeping skull which strikes terror into non Bloodsuckers and Ghouls.\n\
+		It can be turned off and on by the brujah vampire in charge, or their kindred."
+	vamp_desc = "This is a weeping skull which strikes terror into non Bloodsuckers and Ghouls..\n\
+		You can right-click on it from any range to turn it on remotely, or simply be next to it and click on it to turn it on and off normally."
+	ghoul_desc = "This is a weeping skull which strikes terror at mortals, as long as it is active. It signifies a brujah clan member aboard\n\
+		You can turn it on and off by clicking on it while you are next to it.
+	hunter_desc = "This is a weeping skull, which causes terror in non-vampires. It is used by brujah clan vampires."
+
+/obj/structure/bloodsucker/candelabrum/weepkingskull/process()
+	if(!lit)
+		return
+	for(var/mob/living/carbon/nearly_people in viewers(7, src))
+		if(IS_GHOUL(nearly_people) || IS_BLOODSUCKER(nearly_people))
+			continue
+		to_chat(nearly_people, span_notice("You cry for the weeper, for his pain is your's..."))
+		nearly_people.apply_effects(jitter = 5 SECONDS, eyeblur = 5 SECONDS, stutter = 5 SECONDS)
+		nearly_people.emote("cry", "sniff")
+
 /// Blood Throne - Allows Bloodsuckers to remotely speak with their Ghouls. - Code (Mostly) stolen from comfy chairs (armrests) and chairs (layers)
 /obj/structure/bloodsucker/bloodthrone
 	name = "wicked throne"
