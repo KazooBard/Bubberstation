@@ -37,6 +37,7 @@
 	var/list/targets_and_blood = list()
 	/// Traits it gives to the owner when blood is being drunk from them
 	var/list/owner_traits = list(TRAIT_IMMOBILIZED, TRAIT_MUTE)
+	var/list/victim_traits = list()
 
 /datum/action/cooldown/bloodsucker/feed/get_power_explanation_extended()
 	. = list()
@@ -110,7 +111,6 @@
 		if(HAS_TRAIT_FROM(owner, trait, FEED_TRAIT))
 			DeactivatePower()
 			return
-
 	silent_feed = TRUE
 	var/mob/living/feed_target = target_ref?.resolve()
 	if(!feed_target)
@@ -160,8 +160,8 @@
 		owner.balloon_alert(owner, "feed noticed!")
 		bloodsuckerdatum_power.give_masquerade_infraction()
 		break
-
 	owner.add_traits(owner_traits, FEED_TRAIT)
+	feed_target.add_traits(victim_traits, FEED_TRAIT)
 	RegisterSignal(owner, COMSIG_MOB_CLIENT_PRE_LIVING_MOVE, PROC_REF(notify_move_block))
 	return TRUE
 
@@ -240,7 +240,7 @@
 	// Drank mindless as Ventrue? - BAD
 	if((bloodsuckerdatum_power.my_clan && bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SNOBBY) && !feed_target.mind)
 		user.add_mood_event("drankblood", /datum/mood_event/drankblood_bad)
-	// Brujah does not care from where the blood flows
+	// Brujah does not care from where the blood flows, unless it's dishonorable yucky mindless/vamps
 	if(feed_target.stat >= DEAD)
 		if(!(bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SLOPPILY && feed_target.mind))
 			user.add_mood_event("drankblood", /datum/mood_event/drankblood_dead)
@@ -255,8 +255,9 @@
 			owner.balloon_alert(owner, "your victim's blood is dangerously low.")
 		else if(feed_target.blood_volume <= BLOOD_VOLUME_SAFE && warning_target_bloodvol > BLOOD_VOLUME_SAFE)
 			owner.balloon_alert(owner, "your victim's blood is at an unsafe level.")
-		else if(feed_target.blood_volume <= BLOOD_VOLUME_SAFE && bloodsuckerdatum_power.GetBloodVolume() >= BLOOD_VOLUME_SAFE && owner.pulling != feed_target)
+		else if(feed_target.blood_volume <= BLOOD_VOLUME_SAFE && bloodsuckerdatum_power.GetBloodVolume() >= BLOOD_VOLUME_SAFE && owner.pulling != feed_target && bloodsuckerdatum_power.my_clan.blood_drink_type != BLOODSUCKER_DRINK_SLOPPILY)
 			owner.balloon_alert(owner, "you cannot drink more without first getting a better grip!.")
+
 			DeactivatePower()
 		warning_target_bloodvol = feed_target.blood_volume
 
@@ -265,6 +266,7 @@
 		notified_overfeeding = TRUE
 	if(feed_target.blood_volume <= 0)
 		user.balloon_alert(owner, "no blood left!")
+
 		DeactivatePower()
 		return
 	owner.playsound_local(null, 'sound/effects/singlebeat.ogg', 40, TRUE)
@@ -335,10 +337,10 @@
 		if(give_warnings)
 			owner.balloon_alert(owner, "suit too thick!")
 		return FALSE
-	if((bloodsuckerdatum_power.my_clan && bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SNOBBY) && !target_user.mind && !bloodsuckerdatum_power.frenzied)
-		if(give_warnings)
-			owner.balloon_alert(owner, "cant drink from mindless!")
-		return FALSE
+	// if((bloodsuckerdatum_power.my_clan && (bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SNOBBY) || (bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SLOPPILY)) && !target_user.mind && !bloodsuckerdatum_power.frenzied)
+	// 	if(give_warnings)
+	// 		owner.balloon_alert(owner, "cant drink from mindless!")
+	// 	return FALSE
 	if(target_user.has_reagent(/datum/reagent/consumable/garlic, 5))
 		if(give_warnings)
 			owner.balloon_alert(owner, "too much garlic!")

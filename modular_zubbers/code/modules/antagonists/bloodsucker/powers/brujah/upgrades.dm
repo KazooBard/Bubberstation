@@ -7,6 +7,7 @@
 	to_chat(owner, span_cult("something broke, invalid upgrade given"))
 
 /datum/bloodsucker_upgrade/proc/upgrade(mob/owner)
+	level_current += 1
 
 /datum/bloodsucker_upgrade/proc/on_loss(mob/owner)
 
@@ -18,8 +19,6 @@
 
 /datum/bloodsucker_upgrade/brujah/offense
 	name = "offense"
-
-/datum/bloodsucker_upgrade/brujah/offense/on_gain(mob/user)
 
 /datum/bloodsucker_upgrade/brujah/defense
 	name = "defense"

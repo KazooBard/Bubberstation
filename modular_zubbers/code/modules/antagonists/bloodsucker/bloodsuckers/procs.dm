@@ -35,6 +35,7 @@
 		if(power?.type == power_to_remove)
 			RemovePower(power)
 
+// UPGRADES, for brujah!
 /datum/antagonist/bloodsucker/proc/BuyUpgrades(list/upgrades = list())
 	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades)
 		BuyUpgrade(upgrade)
@@ -44,14 +45,20 @@
 		if(current_upgrade.type == upgrade.type)
 			return null
 	upgrade = new upgrade()
-	upgrade += upgrade
+	upgrades += upgrade
 	upgrade.on_gain(owner.current)
 	log_uplink("[key_name(owner.current)] purchased [upgrade].")
 	return upgrade
 
 /datum/antagonist/bloodsucker/proc/RemoveUpgrade(datum/bloodsucker_upgrade/upgrade)
 	upgrade.on_loss(owner.current)
-	powers -= upgrade
+	upgrades -= upgrade
+
+/datum/antagonist/bloodsucker/proc/LevelUpUpgrades()
+	for(var/datum/action/cooldown/bloodsucker/upgrade as anything in upgrades)
+		if(upgrade.purchase_flags & BRUJAH_CAN_BUY)
+			continue
+		upgrade.upgrade_upgrade()
 
 /datum/antagonist/bloodsucker/proc/RemoveUpgradesByPath(datum/action/cooldown/bloodsucker/power_to_remove)
 	for(var/datum/action/cooldown/bloodsucker/power as anything in powers)
@@ -227,7 +234,7 @@
 	return my_clan ? my_clan.free_ghoul_slots() : 0
 
 /datum/antagonist/bloodsucker/proc/frenzy_enter_threshold()
-	return my_clan ? my_clan.frenzy_exit_threshold() : FRENZY_THRESHOLD_ENTER
+	return my_clan ? my_clan.frenzy_enter_threshold() : FRENZY_THRESHOLD_ENTER
 
 /datum/antagonist/bloodsucker/proc/frenzy_exit_threshold()
 	return my_clan ? my_clan.frenzy_exit_threshold() : FRENZY_THRESHOLD_EXIT
@@ -283,6 +290,19 @@
 	if(!power)
 		return
 	RemovePower(power)
+
+/datum/antagonist/bloodsucker/proc/admin_give_upgrade(mob/admin)
+	var/upgrade_type = tgui_input_list(admin, "What power to give [owner.current]?", "Might is right.", all_bloodsucker_upgrades)
+	if(!upgrade_type)
+		return
+	var/datum/bloodsucker_upgrade/upgrade = BuyUpgrade(upgrade_type)
+	upgrade.upgrade_upgrade()
+
+/datum/antagonist/bloodsucker/proc/admin_remove_upgrade(mob/admin)
+	var/datum/bloodsucker_upgrade/upgrade = tgui_input_list(admin, "What power to remove from [owner.current]?", "Might is right.", upgrades)
+	if(!upgrade)
+		return
+	RemoveUpgrade(upgrade)
 
 /datum/antagonist/bloodsucker/proc/admin_set_power_level(mob/admin)
 	var/list/valid_powers = list()

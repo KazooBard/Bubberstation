@@ -8846,6 +8846,7 @@
 #include "modular_zubbers\code\modules\antagonists\bloodsucker\powers\brujah\gorge.dm"
 #include "modular_zubbers\code\modules\antagonists\bloodsucker\powers\brujah\hunting.dm"
 #include "modular_zubbers\code\modules\antagonists\bloodsucker\powers\brujah\mobility.dm"
+#include "modular_zubbers\code\modules\antagonists\bloodsucker\powers\brujah\offense.dm"
 #include "modular_zubbers\code\modules\antagonists\bloodsucker\powers\brujah\rage.dm"
 #include "modular_zubbers\code\modules\antagonists\bloodsucker\powers\brujah\upgrades.dm"
 #include "modular_zubbers\code\modules\antagonists\bloodsucker\powers\targeted\_powers_targeted.dm"

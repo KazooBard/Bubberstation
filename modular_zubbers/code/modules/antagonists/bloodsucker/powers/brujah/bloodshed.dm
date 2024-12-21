@@ -6,7 +6,8 @@
 	check_flags = BP_CANT_USE_IN_TORPOR|BP_CANT_USE_IN_FRENZY
 	purchase_flags = BRUJAH_CAN_BUY
 	cooldown_time = 20 SECONDS
-	bloodcost = 5
+	bloodcost = 100
+	power_activates_immediately = TRUE
 
 // TODO add a shared proc that's used for checking valid blood_volumes for vamp actions
 /datum/action/cooldown/bloodsucker/bloodshed/ActivatePower(atom/target)

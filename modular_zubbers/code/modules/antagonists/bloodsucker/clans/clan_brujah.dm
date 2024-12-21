@@ -14,7 +14,6 @@
 
 /datum/bloodsucker_clan/brujah/on_enter_frenzy(datum/antagonist/bloodsucker/source)
 	ADD_TRAIT(source, TRAIT_STUNIMMUNE, FRENZY_TRAIT)
-	source.max_blood_volume = 600
 
 /datum/bloodsucker_clan/brujah/on_exit_frenzy(datum/antagonist/bloodsucker/source)
 	REMOVE_TRAIT(source, TRAIT_STUNIMMUNE, FRENZY_TRAIT)
@@ -23,16 +22,19 @@
 	. = ..()
 	ADD_TRAIT(bloodsuckerdatum.owner.current, TRAIT_TOSS_GUN_HARD, BLOODSUCKER_TRAIT)
 	owner_datum.max_blood_volume = 300
+	// owner_datum.owner.blood_volume = 300
 	owner_datum.owner.current.playsound_local(get_turf(owner_datum), 'sound/effects/hallucinations/wail.ogg', 80, FALSE, pressure_affected = FALSE, use_reverb = FALSE)
 	to_chat(owner_datum, span_cult("You hunger..."))
 	owner_datum.remove_nondefault_powers(return_levels = TRUE)
 	for(var/datum/bloodsucker_upgrade/upgrade as anything in owner_datum.all_bloodsucker_upgrades)
 		if((initial(upgrade.purchase_flags) & buy_power_flags) && initial(upgrade.level_current) == 1)
 			owner_datum.BuyUpgrade(upgrade)
+	owner_datum.BuyPower(/datum/action/cooldown/bloodsucker/feed/gorge)
+	bloodsuckerdatum.BuyPower(/datum/action/cooldown/bloodsucker/bloodshed)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/masquerade)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/veil)
-
-	// bloodsuckerdatum.AddPower(/datum/action/cooldown/bloodsucker/bloodshed)
+	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/feed)
+	owner_datum.BuyUpgrades(/datum/bloodsucker_upgrade/brujah/defense, /datum/bloodsucker_upgrade/brujah/offense, /datum/bloodsucker_upgrade/brujah/mobility, /datum/bloodsucker_upgrade/brujah/hunting)
 
 /datum/bloodsucker_clan/brujah/max_ghouls()
 	return 0
@@ -60,7 +62,7 @@
 	return istype(power, /datum/bloodsucker_upgrade)
 
 /datum/bloodsucker_clan/brujah/purchase_choice(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/upgrade)
-	upgrade.upgrade()
+	return upgrade.upgrade()
 
 /datum/bloodsucker_clan/brujah/level_up_powers(datum/antagonist/bloodsucker/source)
 	return

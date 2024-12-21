@@ -34,7 +34,7 @@
 /// Level up blood cost define, max_blood * this = blood cost
 #define BLOODSUCKER_LEVELUP_PERCENTAGE 0.45
 #define BLOODSUCKER_LEVELUP_PERCENTAGE_VENTRUE BLOODSUCKER_LEVELUP_PERCENTAGE - 0.1
-#define BLOODSUCKER_LEVELUP_PERCENTAGE_BRUJAH BLOODSUCKER_LEVELUP_PERCENTAGE - BRUJAH_BLOOD_VOLUME_PER_LEVEL // TODO figure out how to math this so it's the same cost it is for normal vamps
+// #define BLOODSUCKER_LEVELUP_PERCENTAGE_BRUJAH BLOODSUCKER_LEVELUP_PERCENTAGE - BRUJAH_BLOOD_VOLUME_PER_LEVEL // TODO figure out how to math this so it's the same cost it is for normal vamps
 
 ///The level when at a bloodsucker becomes snobby about who they drink from and gain their non-fledling reputation
 #define BLOODSUCKER_HIGH_LEVEL 4
