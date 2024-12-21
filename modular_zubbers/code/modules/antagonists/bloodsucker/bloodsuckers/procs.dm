@@ -55,7 +55,7 @@
 	upgrades -= upgrade
 
 /datum/antagonist/bloodsucker/proc/LevelUpUpgrades()
-	for(var/datum/action/cooldown/bloodsucker/upgrade as anything in upgrades)
+	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades)
 		if(upgrade.purchase_flags & BRUJAH_CAN_BUY)
 			continue
 		upgrade.upgrade_upgrade()

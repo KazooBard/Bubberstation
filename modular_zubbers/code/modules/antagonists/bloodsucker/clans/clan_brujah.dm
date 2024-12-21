@@ -61,7 +61,7 @@
 		return FALSE
 	return istype(power, /datum/bloodsucker_upgrade)
 
-/datum/bloodsucker_clan/brujah/purchase_choice(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/upgrade)
+/datum/bloodsucker_clan/brujah/purchase_choice_upgrade(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/upgrade)
 	return upgrade.upgrade()
 
 /datum/bloodsucker_clan/brujah/level_up_powers(datum/antagonist/bloodsucker/source)

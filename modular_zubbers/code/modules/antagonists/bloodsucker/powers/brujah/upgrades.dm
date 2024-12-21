@@ -2,6 +2,23 @@
 	var/name = "coder did a coder, call a coder today!"
 	var/level_current = 0
 	var/purchase_flags = NONE
+	var/datum/antagonist/bloodsucker/bloodsuckerdatum_upgrade
+
+/datum/bloodsucker_upgrade/brujah
+	purchase_flags = BRUJAH_CAN_BUY
+
+
+/datum/bloodsucker_upgrade/proc/upgrade_upgrade()
+	SHOULD_CALL_PARENT(TRUE)
+	if(level_current == -1) // -1 means it doesn't rank up ever
+		return FALSE
+	level_current++
+	on_upgrade_upgrade()
+	return TRUE
+
+/datum/bloodsucker_upgrade/proc/on_upgrade_upgrade()
+	SHOULD_CALL_PARENT(TRUE)
+	return TRUE
 
 /datum/bloodsucker_upgrade/proc/on_gain(mob/owner)
 	to_chat(owner, span_cult("something broke, invalid upgrade given"))

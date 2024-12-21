@@ -106,18 +106,6 @@
 		return FALSE
 	return TRUE
 
-///Called when the Power is upgraded.
-/datum/action/cooldown/bloodsucker/proc/upgrade_upgrade()
-	SHOULD_CALL_PARENT(TRUE)
-	if(level_current == -1) // -1 means it doesn't rank up ever
-		return FALSE
-	level_current++
-	on_upgrade_upgrade()
-	return TRUE
-
-/datum/action/cooldown/bloodsucker/proc/on_upgrade_upgrade()
-	SHOULD_CALL_PARENT(TRUE)
-	return TRUE
 
 ///Called when the Power is upgraded.
 /datum/action/cooldown/bloodsucker/proc/upgrade_power()
