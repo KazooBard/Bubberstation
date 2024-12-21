@@ -12,9 +12,13 @@
 
 		power_data["power_name"] = power.name
 		power_data["power_icon"] = power.button_icon_state
-		if(istype(power, /datum/action/cooldown/bloodsucker))
-			var/datum/action/cooldown/bloodsucker/bloodsucker_power = power
-			power_data["power_explanation"] = bloodsucker_power.get_power_explanation()
+		var/extra_desc = power.get_action_explanation()
+		if(extra_desc)
+			power_data["power_explanation"] = extra_desc
 
 		data["powers"] += list(power_data)
 	return data
+
+/// A further detailed description of the action, used in the antagonist panel.
+/datum/action/cooldown/proc/get_action_explanation()
+	return null

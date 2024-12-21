@@ -1,3 +1,6 @@
+
+#define BRUJAH_STARTING_BLOOD 300
+
 /datum/bloodsucker_clan/brujah
 	name = CLAN_BRUJAH
 	description = "Clan Brujah has long since fallen into disrepair, what remains are rebels and thugs for the most part - all tied by violence and fierce physique. \n\
@@ -20,17 +23,17 @@
 
 /datum/bloodsucker_clan/brujah/New(datum/antagonist/bloodsucker/owner_datum)
 	. = ..()
-	ADD_TRAIT(bloodsuckerdatum.owner.current, TRAIT_TOSS_GUN_HARD, BLOODSUCKER_TRAIT)
-	owner_datum.max_blood_volume = 300
-	// owner_datum.owner.blood_volume = 300
-	owner_datum.owner.current.playsound_local(get_turf(owner_datum), 'sound/effects/hallucinations/wail.ogg', 80, FALSE, pressure_affected = FALSE, use_reverb = FALSE)
-	to_chat(owner_datum, span_cult("You hunger..."))
+	var/mob/user = owner_datum.owner.current
+	ADD_TRAIT(user, TRAIT_TOSS_GUN_HARD, BLOODSUCKER_TRAIT)
+	owner_datum.max_blood_volume = BRUJAH_STARTING_BLOOD
+	owner_datum.SetBloodVolume(BRUJAH_STARTING_BLOOD)
+	user.playsound_local(get_turf(user), 'sound/effects/hallucinations/wail.ogg', 80, FALSE, pressure_affected = FALSE, use_reverb = FALSE)
+	to_chat(user, span_cult("You hunger..."))
 	owner_datum.remove_nondefault_powers(return_levels = TRUE)
 	for(var/datum/bloodsucker_upgrade/upgrade as anything in owner_datum.all_bloodsucker_upgrades)
 		if((initial(upgrade.purchase_flags) & buy_power_flags) && initial(upgrade.level_current) == 1)
 			owner_datum.BuyUpgrade(upgrade)
-	owner_datum.BuyPower(/datum/action/cooldown/bloodsucker/feed/gorge)
-	bloodsuckerdatum.BuyPower(/datum/action/cooldown/bloodsucker/bloodshed)
+	owner_datum.BuyPowers(/datum/action/cooldown/bloodsucker/feed/gorge, /datum/action/cooldown/bloodsucker/bloodshed)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/masquerade)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/veil)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/feed)
@@ -47,13 +50,20 @@
 	for(var/datum/action/cooldown/bloodsucker/power in bloodsuckerdatum.powers)
 		if(power.purchase_flags & buy_power_flags)
 			bloodsuckerdatum.RemovePower(power)
+	for(var/datum/bloodsucker_upgrade/brujah/upgrade in bloodsuckerdatum.upgrades)
+		if(upgrade.purchase_flags & buy_power_flags)
+			bloodsuckerdatum.RemoveUpgrade(upgrade)
 	return ..()
 
-/datum/bloodsucker_clan/brujah/list_available_powers(already_known, upgrades_list)
+/datum/bloodsucker_clan/brujah/list_available_powers(already_known = bloodsuckerdatum.upgrades, upgrades_list = bloodsuckerdatum.all_bloodsucker_upgrades)
 	var/list/options = list()
 	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades_list)
-		if(initial(upgrade.purchase_flags) & buy_power_flags && !(locate(upgrade) in already_known))
-			options[initial(upgrade.name)] = upgrade
+		if(initial(upgrade.purchase_flags) & buy_power_flags)
+			var/datum/bloodsucker_upgrade/found_upgrade = locate(upgrade) in already_known
+			if(found_upgrade)
+				options["[upgrade.name]: [upgrade.level_current]"] = upgrade
+			else
+				options[initial(upgrade.name)] = upgrade
 	return options
 
 /datum/bloodsucker_clan/brujah/is_valid_choice(power, cost_rank, blood_cost, requires_coffin)
@@ -61,8 +71,11 @@
 		return FALSE
 	return istype(power, /datum/bloodsucker_upgrade)
 
-/datum/bloodsucker_clan/brujah/purchase_choice_upgrade(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/upgrade)
-	return upgrade.upgrade()
+/datum/bloodsucker_clan/brujah/purchase_choice(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/upgrade)
+	var/datum/bloodsucker_upgrade/already_known = locate(upgrade) in bloodsuckerdatum.upgrades
+	if(!already_known)
+		bloodsuckerdatum.BuyUpgrade(upgrade)
+	return upgrade.upgrade(bloodsuckerdatum.owner.current, !already_known)
 
 /datum/bloodsucker_clan/brujah/level_up_powers(datum/antagonist/bloodsucker/source)
 	return
@@ -71,3 +84,5 @@
 	var/mob/living/carbon/human/human_user = bloodsuckerdatum.owner.current
 	human_user.balloon_alert(human_user, "upgraded [power_name]!")
 	to_chat(human_user, span_notice("You have upgraded [power_name]!"))
+
+#undef BRUJAH_STARTING_BLOOD

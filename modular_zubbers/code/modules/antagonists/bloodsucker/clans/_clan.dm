@@ -39,7 +39,7 @@
 
 /datum/bloodsucker_clan/New(datum/antagonist/bloodsucker/owner_datum)
 	. = ..()
-	bloodsuckerdatum = WEAKREF(owner_datum)
+	bloodsuckerdatum = owner_datum
 
 	RegisterSignal(bloodsuckerdatum, COMSIG_BLOODSUCKER_ON_LIFETICK, PROC_REF(handle_clan_life))
 	RegisterSignal(bloodsuckerdatum, COMSIG_BLOODSUCKER_RANK_UP, PROC_REF(on_spend_rank))
@@ -283,12 +283,6 @@
  * bloodsuckerdatum - the antagonist datum of the Bloodsucker performing this.
  * ghouldatum - the antagonist datum of the Ghoul being offered up.
  */
-
-/datum/bloodsucker_clan/proc/purchase_choice_upgrade(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/purchased_upgrade)
-	return bloodsuckerdatum.BuyUpgrade(purchased_upgrade)
-
-/datum/bloodsucker_clan/proc/level_up_upgrades(datum/antagonist/bloodsucker/source)
-	bloodsuckerdatum.LevelUpUpgrades()
 
 /datum/bloodsucker_clan/proc/on_interact_with_ghoul(datum/antagonist/bloodsucker/source, datum/antagonist/ghoul/ghouldatum)
 	SIGNAL_HANDLER

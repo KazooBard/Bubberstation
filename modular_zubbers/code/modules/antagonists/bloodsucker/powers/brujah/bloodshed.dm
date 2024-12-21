@@ -2,7 +2,7 @@
 	name = "Shed Blood" //haha wordplay amirite?
 	desc = "Let loose excess blood in order to forcefully enter rage."
 	button_icon_state = "power_fortitude"
-	power_flags = BP_CONTINUOUS_EFFECT|BP_AM_COSTLESS_UNCONSCIOUS
+	power_flags = BP_AM_STATIC_COOLDOWN
 	check_flags = BP_CANT_USE_IN_TORPOR|BP_CANT_USE_IN_FRENZY
 	purchase_flags = BRUJAH_CAN_BUY
 	cooldown_time = 20 SECONDS

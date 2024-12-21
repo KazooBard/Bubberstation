@@ -1,56 +1,49 @@
 /datum/bloodsucker_upgrade
 	var/name = "coder did a coder, call a coder today!"
+	var/desc = "You feel compelled to tell a coder something went wrong..."
 	var/level_current = 0
 	var/purchase_flags = NONE
-	var/datum/antagonist/bloodsucker/bloodsuckerdatum_upgrade
+	var/gain_message = "You feel compelled to tell a coder something went wrong..."
+	var/datum/weakref/bloodsucker_datum
 
-/datum/bloodsucker_upgrade/brujah
-	purchase_flags = BRUJAH_CAN_BUY
+/datum/bloodsucker_upgrade/proc/gain(mob/owner)
+	SHOULD_NOT_OVERRIDE(TRUE)
+	var/datum/antagonist/bloodsucker/vamp = IS_BLOODSUCKER(owner)
+	if(!vamp)
+		qdel(src)
+		return FALSE
+	bloodsucker_datum = WEAKREF(vamp)
+	to_chat(owner, span_cult(gain_message))
+	return TRUE
 
+/datum/bloodsucker_upgrade/proc/loss(mob/owner)
+	on_loss(owner)
+	return TRUE
 
-/datum/bloodsucker_upgrade/proc/upgrade_upgrade()
-	SHOULD_CALL_PARENT(TRUE)
+/datum/bloodsucker_upgrade/Destroy(force = FALSE)
+	var/datum/antagonist/bloodsucker/vamp = bloodsucker_datum?.resolve()
+	if(!vamp)
+		return ..()
+	vamp.RemoveUpgrade(src)
+	. = ..()
+
+/datum/bloodsucker_upgrade/proc/upgrade(mob/owner)
+	SHOULD_NOT_OVERRIDE(TRUE)
 	if(level_current == -1) // -1 means it doesn't rank up ever
 		return FALSE
 	level_current++
-	on_upgrade_upgrade()
+	to_chat(owner, span_cult("Upgraded [name]"))
+	on_upgrade()
 	return TRUE
 
-/datum/bloodsucker_upgrade/proc/on_upgrade_upgrade()
-	SHOULD_CALL_PARENT(TRUE)
-	return TRUE
+/datum/bloodsucker_upgrade/proc/get_power_explanation()
+	return desc
 
 /datum/bloodsucker_upgrade/proc/on_gain(mob/owner)
-	to_chat(owner, span_cult("something broke, invalid upgrade given"))
-
-/datum/bloodsucker_upgrade/proc/upgrade(mob/owner)
-	level_current += 1
 
 /datum/bloodsucker_upgrade/proc/on_loss(mob/owner)
 
-/datum/bloodsucker_upgrade/brujah/coding/on_gain(mob/user)
-	to_chat(user, span_cult("You feel your [name] grow in power..."))
+/datum/bloodsucker_upgrade/proc/on_upgrade()
 
-/datum/bloodsucker_upgrade/brujah/coding
-	name = "Coding" // coding skill ;)P
-
-/datum/bloodsucker_upgrade/brujah/offense
-	name = "offense"
-
-/datum/bloodsucker_upgrade/brujah/defense
-	name = "defense"
-
-/datum/bloodsucker_upgrade/brujah/defense/on_gain(mob/user)
-
-/datum/bloodsucker_upgrade/brujah/mobility
-	name = "mobility"
-
-/datum/bloodsucker_upgrade/brujah/mobility/on_gain(mob/user)
-
-/datum/bloodsucker_upgrade/brujah/hunting
-	name = "hunting"
-
-/datum/bloodsucker_upgrade/brujah/huntinge/on_gain(mob/user)
-
-/datum/bloodsucker_upgrade/brujah/rage
-	name = "rage"
+/datum/bloodsucker_upgrade/brujah
+	purchase_flags = BRUJAH_CAN_BUY

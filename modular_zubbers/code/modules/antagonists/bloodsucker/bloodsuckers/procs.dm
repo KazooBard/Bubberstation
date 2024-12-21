@@ -51,14 +51,8 @@
 	return upgrade
 
 /datum/antagonist/bloodsucker/proc/RemoveUpgrade(datum/bloodsucker_upgrade/upgrade)
-	upgrade.on_loss(owner.current)
 	upgrades -= upgrade
-
-/datum/antagonist/bloodsucker/proc/LevelUpUpgrades()
-	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades)
-		if(upgrade.purchase_flags & BRUJAH_CAN_BUY)
-			continue
-		upgrade.upgrade_upgrade()
+	return upgrade.loss(owner.current)
 
 /datum/antagonist/bloodsucker/proc/RemoveUpgradesByPath(datum/action/cooldown/bloodsucker/power_to_remove)
 	for(var/datum/action/cooldown/bloodsucker/power as anything in powers)
@@ -296,7 +290,7 @@
 	if(!upgrade_type)
 		return
 	var/datum/bloodsucker_upgrade/upgrade = BuyUpgrade(upgrade_type)
-	upgrade.upgrade_upgrade()
+	upgrade.on_upgrade()
 
 /datum/antagonist/bloodsucker/proc/admin_remove_upgrade(mob/admin)
 	var/datum/bloodsucker_upgrade/upgrade = tgui_input_list(admin, "What power to remove from [owner.current]?", "Might is right.", upgrades)

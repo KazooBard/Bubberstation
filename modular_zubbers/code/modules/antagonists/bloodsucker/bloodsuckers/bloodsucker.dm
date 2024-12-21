@@ -12,7 +12,7 @@
 	ui_name = "AntagInfoBloodsucker"
 	preview_outfit = /datum/outfit/bloodsucker_outfit
 
-	/// How much blood we have, starting off at default blood levels. Do not adjust this directly, use adjustBloodVolume(), and use getBloodVolume() to get the current value.
+	/// How much blood we have, starting off at default blood levels. Do not adjust this directly, use adjustBloodVolume()/SetBloodVolume(), and use getBloodVolume() to get the current value.
 	VAR_PRIVATE/bloodsucker_blood_volume = BLOOD_VOLUME_NORMAL
 	/// How much blood we can have without it deckaying quickly, increases per level.
 	var/max_blood_volume = 600
@@ -213,6 +213,9 @@
 		.["Remove Clan"] = CALLBACK(src, PROC_REF(remove_clan))
 	else
 		.["Add Clan"] = CALLBACK(src, PROC_REF(admin_set_clan))
+	if(my_clan && istype(my_clan, /datum/bloodsucker_clan/brujah))
+		.["Add upgrade"] = CALLBACK(src, PROC_REF(admin_give_upgrade))
+		.["Remove upgrade"] = CALLBACK(src, PROC_REF(admin_remove_upgrade))
 
 ///Called when you get the antag datum, called only ONCE per antagonist.
 /datum/antagonist/bloodsucker/on_gain()
@@ -350,6 +353,11 @@
 
 	data["clan"] += list(clan_data)
 
+	for(var/datum/bloodsucker_upgrade/upgrade in upgrades)
+		var/list/upgrade_data = list()
+		upgrade_data["power_name"] = upgrade.name
+		upgrade_data["power_explanation"] = upgrade.get_power_explanation()
+		data["powers"] += list(upgrade_data)
 	return data + ..()
 
 /datum/antagonist/bloodsucker/ui_assets(mob/user)
