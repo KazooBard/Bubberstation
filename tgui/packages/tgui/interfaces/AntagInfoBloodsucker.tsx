@@ -6,7 +6,7 @@ import { useBackend } from '../backend';
 import { Box, Button, Image, Section, Stack, Tabs } from '../components';
 import { Window } from '../layouts';
 import { Objective } from './common/Objectives';
-import { PowerDetails } from './PowerInfo';
+import { PowerDetails } from './common/PowerDetails';
 
 export type ClanProps = {
   clan: ClanInfo[];
