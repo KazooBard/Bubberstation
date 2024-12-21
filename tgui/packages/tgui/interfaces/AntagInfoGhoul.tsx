@@ -3,7 +3,7 @@ import { Section, Stack } from '../components';
 import { Window } from '../layouts';
 import { GhoulProps } from './AntagInfoBloodsucker';
 import { ObjectivePrintout } from './common/Objectives';
-import { PowerDetails } from './PowerInfo';
+import { PowerDetails } from './common/PowerDetails';
 
 export const AntagInfoGhoul = (props: any, context: any) => {
   const { data } = useBackend<GhoulProps>();
