@@ -20,7 +20,6 @@
 		user_right_hand.unarmed_sharpness = 1
 		user_right_hand.unarmed_attack_sound = 'sound/items/weapons/slash.ogg'
 		user_right_hand.unarmed_miss_sound = 'sound/items/weapons/slashmiss.ogg'
-
 		if(level_current == 1)
 			user_left_hand.unarmed_damage_low = 15
 			user_right_hand.unarmed_damage_low = 15

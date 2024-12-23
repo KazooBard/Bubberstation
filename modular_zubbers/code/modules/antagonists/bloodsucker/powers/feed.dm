@@ -242,10 +242,10 @@
 		user.add_mood_event("drankblood", /datum/mood_event/drankblood_bad)
 	// Brujah does not care from where the blood flows, unless it's dishonorable yucky mindless/vamps
 	if(feed_target.stat >= DEAD)
-		if(!(bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SLOPPILY && feed_target.mind))
+		if((bloodsuckerdatum_power.my_clan.blood_drink_type != BLOODSUCKER_DRINK_SLOPPILY))
 			user.add_mood_event("drankblood", /datum/mood_event/drankblood_dead)
 			return
-	if(feed_target.mind && feed_target.mind?.has_antag_datum(/datum/antagonist/bloodsucker) || feed_target.mind?.has_antag_datum(/datum/antagonist/ghoul))
+	if(bloodsuckerdatum_power.my_clan.blood_drink_type == BLOODSUCKER_DRINK_SLOPPILY && feed_target.mind && feed_target.mind?.has_antag_datum(/datum/antagonist/bloodsucker) || feed_target.mind?.has_antag_datum(/datum/antagonist/ghoul))
 		user.add_mood_event("drankblood", /datum/mood_event/drankblood_dishonorable)
 
 	if(!IS_BLOODSUCKER(feed_target))
