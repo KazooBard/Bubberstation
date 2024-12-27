@@ -514,8 +514,21 @@
 		if(IS_GHOUL(nearly_people) || IS_BLOODSUCKER(nearly_people))
 			continue
 		to_chat(nearly_people, span_notice("You cry for the weeper, for his pain is your's..."))
-		nearly_people.apply_effects(jitter = 5 SECONDS, eyeblur = 5 SECONDS, stutter = 5 SECONDS)
-		nearly_people.emote("cry", "sniff")
+		nearly_people.apply_effects(jitter = 2 SECONDS, eyeblur = 2 SECONDS)
+		if(prob(20))
+			nearly_people.emote("cry", "sniff")
+
+/obj/structure/bloodsucker/haruspex
+	name = "Bone Haruspex"
+	desc = "A table covered in bones of various shapes and sizes. It is engraved with crevices, seeping with a dark crimson liquid."
+	icon = 'modular_zubbers/icons/obj/structures/vamp_obj_64.dmi'
+	icon_state = "throne"
+	anchored = FALSE
+	density = TRUE
+	ghost_desc = "This is an oracular table of sorts, the sharpest bone pieces laid upon it seem to behave like a compass... but to who?"
+	vamp_desc = "This is a Brujah haruspex. It allows you to sense incoming mortals by interacting with it."
+	ghoul_desc = "This is a Brujah haruspex. It allows your master's ghoulless brethren to see ambushes."
+	hunter_desc = "This is a disgusting collection of bones that the undead savages used to see you coming."
 
 /// Blood Throne - Allows Bloodsuckers to remotely speak with their Ghouls. - Code (Mostly) stolen from comfy chairs (armrests) and chairs (layers)
 /obj/structure/bloodsucker/bloodthrone

@@ -1,8 +1,8 @@
-/datum/action/cooldown/bloodsucker/bloodshed
-	name = "Shed Blood" //haha wordplay amirite?
-	desc = "Let loose excess blood in order to forcefully enter rage."
+/datum/action/cooldown/bloodsucker/frenzy
+	name = "Frenzy"
+	desc = "Tap into your primal side to enter frenzy!"
 	button_icon_state = "power_fortitude"
-	power_flags = BP_CONTINUOUS_EFFECT|BP_AM_STATIC_COOLDOWN
+	power_flags = BP_AM_STATIC_COOLDOWN
 	purchase_flags = BRUJAH_CAN_BUY
 	cooldown_time = 20 SECONDS
 	bloodcost = 100
@@ -10,10 +10,5 @@
 	level_current = -1
 
 // TODO add a shared proc that's used for checking valid blood_volumes for vamp actions
-/datum/action/cooldown/bloodsucker/bloodshed/ActivatePower(mob/living/carbon/user)
-	if(bloodsuckerdatum_power.GetBloodVolume() <= bloodsuckerdatum_power?.my_clan.frenzy_threshold_enter)
-		return
+/datum/action/cooldown/bloodsucker/frenzy/ActivatePower(mob/living/carbon/user)
 	user.apply_status_effect(/datum/status_effect/frenzy)
-	user.balloon_alert(owner, "Bloodrage used!.")
-	to_chat(user, span_notice("Your blood jettisons through every pore in your body, you feel lighter... and hungrier."))
-	pay_cost()

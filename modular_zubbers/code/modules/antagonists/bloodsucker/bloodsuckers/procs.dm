@@ -290,7 +290,8 @@
 	if(!upgrade_type)
 		return
 	var/datum/bloodsucker_upgrade/upgrade = BuyUpgrade(upgrade_type)
-	upgrade.on_upgrade()
+	upgrade.upgrade()
+
 
 /datum/antagonist/bloodsucker/proc/admin_remove_upgrade(mob/admin)
 	var/datum/bloodsucker_upgrade/upgrade = tgui_input_list(admin, "What power to remove from [owner.current]?", "Might is right.", upgrades)

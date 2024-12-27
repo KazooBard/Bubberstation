@@ -33,11 +33,10 @@
 	for(var/datum/bloodsucker_upgrade/upgrade as anything in owner_datum.all_bloodsucker_upgrades)
 		if((initial(upgrade.purchase_flags) & buy_power_flags) && initial(upgrade.level_current) == 1)
 			owner_datum.BuyUpgrade(upgrade)
-	owner_datum.BuyPowers(/datum/action/cooldown/bloodsucker/feed/gorge, /datum/action/cooldown/bloodsucker/bloodshed)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/masquerade)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/veil)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/feed)
-	owner_datum.BuyUpgrades(/datum/bloodsucker_upgrade/brujah/defense, /datum/bloodsucker_upgrade/brujah/offense, /datum/bloodsucker_upgrade/brujah/mobility, /datum/bloodsucker_upgrade/brujah/hunting)
+	owner_datum.BuyPowers(/datum/action/cooldown/bloodsucker/feed/gorge, /datum/action/cooldown/bloodsucker/frenzy)
 
 /datum/bloodsucker_clan/brujah/max_ghouls()
 	return 0
@@ -55,7 +54,7 @@
 			bloodsuckerdatum.RemoveUpgrade(upgrade)
 	return ..()
 
-/datum/bloodsucker_clan/brujah/list_available_powers(already_known = bloodsuckerdatum.upgrades, upgrades_list = bloodsuckerdatum.all_bloodsucker_upgrades)
+/datum/bloodsucker_clan/brujah/proc/list_available_upgrades(already_known = bloodsuckerdatum.upgrades, upgrades_list = bloodsuckerdatum.all_bloodsucker_upgrades)
 	var/list/options = list()
 	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades_list)
 		if(initial(upgrade.purchase_flags) & buy_power_flags)
@@ -84,5 +83,19 @@
 	var/mob/living/carbon/human/human_user = bloodsuckerdatum.owner.current
 	human_user.balloon_alert(human_user, "upgraded [power_name]!")
 	to_chat(human_user, span_notice("You have upgraded [power_name]!"))
+
+/datum/bloodsucker_clan/brujah/spend_rank/(datum/antagonist/bloodsucker/source, cost_rank = TRUE, blood_cost, requires_coffin = TRUE, datum/bloodsucker_upgrade/upgrade) //Artur is a godsend
+	var/list/options = list_available_upgrades()
+	if(length(options))
+		var/choice = choose_powers(
+			"You have the opportunity to grow more ancient. [blood_cost > 0 ? " Spend [round(blood_cost, 1)] blood to advance your rank" : ""]",
+			"Your Blood Thickens...",
+			options
+		)
+		if(!is_valid_choice(choice, cost_rank, blood_cost, requires_coffin))
+			return FALSE
+		// Good to go - Buy Power!
+		purchase_choice(source, choice)
+		level_message(choice)
 
 #undef BRUJAH_STARTING_BLOOD

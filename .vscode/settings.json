@@ -12,6 +12,7 @@
 		"source.fixAll.eslint": "explicit"
 	},
 	"files.eol": "\n",
+	"dreammaker.langserverPath": "",
 	"files.insertFinalNewline": true,
 	"files.trimTrailingWhitespace": true,
 	"editor.insertSpaces": false,
