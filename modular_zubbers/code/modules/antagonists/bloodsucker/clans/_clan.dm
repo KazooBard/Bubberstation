@@ -170,7 +170,7 @@
 	INVOKE_ASYNC(src, PROC_REF(spend_rank), bloodsuckerdatum, cost_rank, blood_cost)
 
 /datum/bloodsucker_clan/proc/spend_rank(datum/antagonist/bloodsucker/source, cost_rank = TRUE, blood_cost, requires_coffin = TRUE) //Artur is a godsend
-	var/list/options = list_available_powers()
+	var/list/options = list_available_choices()
 	if(length(options))
 		var/choice = choose_powers(
 			"You have the opportunity to grow more ancient. [blood_cost > 0 ? " Spend [round(blood_cost, 1)] blood to advance your rank" : ""]",
@@ -199,9 +199,15 @@
 	var/choice = tgui_input_list(human_user, message, title, options)
 	return options[choice]
 
-/datum/bloodsucker_clan/proc/is_valid_choice(datum/action/cooldown/bloodsucker/power, cost_rank, blood_cost, requires_coffin)
+/datum/bloodsucker_clan/proc/is_valid_choice(
+		datum/action/cooldown/bloodsucker/power,
+		cost_rank = TRUE,
+		blood_cost = 0,
+		requires_coffin = TRUE,
+		check_list = bloodsuckerdatum.powers
+	)
 	var/mob/living/carbon/human/human_user = bloodsuckerdatum.owner.current
-	if(!power)
+	if(!power || !is_valid_purchase_type(power))
 		return FALSE
 	if(cost_rank && bloodsuckerdatum.GetUnspentRank() <= 0)
 		return FALSE
@@ -220,6 +226,11 @@
 		to_chat(human_user, span_notice("You already know [initial(power.name)]!"))
 		return FALSE
 	return TRUE
+
+/datum/bloodsucker_clan/proc/is_valid_purchase_type(purchase)
+	var/bought = new purchase
+	. = istype(bought, /datum/action/cooldown/bloodsucker)
+	qdel(bought)
 
 /datum/bloodsucker_clan/proc/finalize_spend_rank(datum/antagonist/bloodsucker/source, cost_rank = TRUE, blood_cost)
 	level_up_powers(source)
@@ -265,7 +276,7 @@
 	return TRUE
 
 
-/datum/bloodsucker_clan/proc/list_available_powers(already_known = bloodsuckerdatum.powers, powers_list = bloodsuckerdatum.all_bloodsucker_powers)
+/datum/bloodsucker_clan/proc/list_available_choices(already_known = bloodsuckerdatum.powers, powers_list = bloodsuckerdatum.all_bloodsucker_powers)
 	var/list/options = list()
 	for(var/datum/action/cooldown/bloodsucker/power as anything in powers_list)
 		if(initial(power.purchase_flags) & buy_power_flags && !(locate(power) in already_known))

@@ -41,10 +41,8 @@
 	to_chat(human_user, span_notice("You have upgraded [power_name]!"))
 
 // redefine the default args
-/datum/bloodsucker_clan/tremere/list_available_powers(already_known, powers_list)
-	already_known = list()
-	powers_list = bloodsuckerdatum.powers
-	return ..()
+/datum/bloodsucker_clan/tremere/list_available_choices(already_known = list(), powers_list)
+	. = ..()
 
 /datum/bloodsucker_clan/tremere/purchase_choice(datum/antagonist/bloodsucker/source, datum/action/cooldown/bloodsucker/purchased_power)
 	return purchased_power.upgrade_power()

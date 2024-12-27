@@ -54,7 +54,10 @@
 			bloodsuckerdatum.RemoveUpgrade(upgrade)
 	return ..()
 
-/datum/bloodsucker_clan/brujah/proc/list_available_upgrades(already_known = bloodsuckerdatum.upgrades, upgrades_list = bloodsuckerdatum.all_bloodsucker_upgrades)
+/datum/bloodsucker_clan/brujah/list_available_choices(
+		already_known = bloodsuckerdatum.upgrades,
+		upgrades_list = bloodsuckerdatum.all_bloodsucker_upgrades
+	)
 	var/list/options = list()
 	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades_list)
 		if(initial(upgrade.purchase_flags) & buy_power_flags)
@@ -65,37 +68,28 @@
 				options[initial(upgrade.name)] = upgrade
 	return options
 
-/datum/bloodsucker_clan/brujah/is_valid_choice(power, cost_rank, blood_cost, requires_coffin)
-	if(!.)
-		return FALSE
-	return istype(power, /datum/bloodsucker_upgrade)
+// fuckery: we are modifying the default args
+/datum/bloodsucker_clan/brujah/is_valid_choice(
+		datum/action/cooldown/bloodsucker/power,
+		cost_rank,
+		blood_cos,
+		requires_coffin,
+		check_list = bloodsuckerdatum.upgrades
+	)
+	. = ..()
+
+/datum/bloodsucker_clan/brujah/is_valid_purchase_type(purchase)
+	var/bought = new purchase
+	. = istype(bought, /datum/bloodsucker_upgrade)
+	qdel(bought)
 
 /datum/bloodsucker_clan/brujah/purchase_choice(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/upgrade)
 	var/datum/bloodsucker_upgrade/already_known = locate(upgrade) in bloodsuckerdatum.upgrades
 	if(!already_known)
 		bloodsuckerdatum.BuyUpgrade(upgrade)
-	return upgrade.upgrade(bloodsuckerdatum.owner.current, !already_known)
+	return already_known.upgrade(bloodsuckerdatum.owner.current, !already_known)
 
 /datum/bloodsucker_clan/brujah/level_up_powers(datum/antagonist/bloodsucker/source)
 	return
-
-/datum/bloodsucker_clan/brujah/level_message(power_name)
-	var/mob/living/carbon/human/human_user = bloodsuckerdatum.owner.current
-	human_user.balloon_alert(human_user, "upgraded [power_name]!")
-	to_chat(human_user, span_notice("You have upgraded [power_name]!"))
-
-/datum/bloodsucker_clan/brujah/spend_rank/(datum/antagonist/bloodsucker/source, cost_rank = TRUE, blood_cost, requires_coffin = TRUE, datum/bloodsucker_upgrade/upgrade) //Artur is a godsend
-	var/list/options = list_available_upgrades()
-	if(length(options))
-		var/choice = choose_powers(
-			"You have the opportunity to grow more ancient. [blood_cost > 0 ? " Spend [round(blood_cost, 1)] blood to advance your rank" : ""]",
-			"Your Blood Thickens...",
-			options
-		)
-		if(!is_valid_choice(choice, cost_rank, blood_cost, requires_coffin))
-			return FALSE
-		// Good to go - Buy Power!
-		purchase_choice(source, choice)
-		level_message(choice)
 
 #undef BRUJAH_STARTING_BLOOD
