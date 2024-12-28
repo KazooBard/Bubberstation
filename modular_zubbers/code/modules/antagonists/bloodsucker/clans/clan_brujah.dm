@@ -86,7 +86,7 @@
 /datum/bloodsucker_clan/brujah/purchase_choice(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/upgrade)
 	var/datum/bloodsucker_upgrade/already_known = locate(upgrade) in bloodsuckerdatum.upgrades
 	if(!already_known)
-		bloodsuckerdatum.BuyUpgrade(upgrade)
+		already_known = bloodsuckerdatum.BuyUpgrade(upgrade)
 	return already_known.upgrade(bloodsuckerdatum.owner.current, !already_known)
 
 /datum/bloodsucker_clan/brujah/level_up_powers(datum/antagonist/bloodsucker/source)

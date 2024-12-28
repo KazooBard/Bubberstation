@@ -1,6 +1,5 @@
 /datum/bloodsucker_upgrade/brujah/offense
 	name = "offense"
-	level_current = 1
 
 /datum/bloodsucker_upgrade/brujah/offense/on_gain(mob/living/carbon/user)
 	var/obj/item/bodypart/user_left_hand = user.get_bodypart(BODY_ZONE_L_ARM)

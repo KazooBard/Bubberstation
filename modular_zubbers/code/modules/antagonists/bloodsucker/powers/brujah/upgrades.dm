@@ -11,7 +11,7 @@
 	var/datum/antagonist/bloodsucker/vamp = IS_BLOODSUCKER(owner)
 	if(!vamp)
 		qdel(src)
-		return FALSE
+		CRASH("Tried to give a bloodsucker upgrade to a non-bloodsucker [owner ? owner : "nothing"]!")
 	bloodsucker_datum = WEAKREF(vamp)
 	to_chat(owner, span_cult(gain_message))
 	return TRUE

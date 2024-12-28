@@ -13,9 +13,8 @@
 
 /datum/bloodsucker_clan/nosferatu/New(datum/antagonist/bloodsucker/owner_datum)
 	. = ..()
-	for(var/datum/action/cooldown/bloodsucker/power as anything in bloodsuckerdatum.powers)
-		if(istype(power, /datum/action/cooldown/bloodsucker/masquerade) || istype(power, /datum/action/cooldown/bloodsucker/veil))
-			bloodsuckerdatum.RemovePower(power)
+	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/masquerade)
+	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/veil)
 	if(!bloodsuckerdatum.owner.current.has_quirk(/datum/quirk/badback))
 		bloodsuckerdatum.owner.current.add_quirk(/datum/quirk/badback)
 	bloodsuckerdatum.owner.current.add_traits(list(TRAIT_VENTCRAWLER_ALWAYS, TRAIT_DISFIGURED), BLOODSUCKER_TRAIT)
@@ -31,9 +30,7 @@
 	examine_text += span_danger("[ogled.p_They()] look[ogled.p_s()] horrifically disfigured and grotesque, pale as a corpse, and [ogled.p_their()] body is covered in scars and burns.")
 
 /datum/bloodsucker_clan/nosferatu/Destroy(force)
-	var/datum/action/cooldown/bloodsucker/feed/suck = locate() in bloodsuckerdatum.powers
-	if(suck)
-		bloodsuckerdatum.RemovePower(suck)
+	bloodsuckerdatum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/feed)
 	bloodsuckerdatum.give_starting_powers()
 	bloodsuckerdatum.owner.current.remove_quirk(/datum/quirk/badback)
 	bloodsuckerdatum.owner.current.remove_traits(list(TRAIT_VENTCRAWLER_ALWAYS, TRAIT_DISFIGURED), BLOODSUCKER_TRAIT)

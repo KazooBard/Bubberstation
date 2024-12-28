@@ -1,6 +1,5 @@
 /datum/antagonist/bloodsucker/proc/on_examine(datum/source, mob/examiner, examine_text)
 	SIGNAL_HANDLER
-
 	if(!iscarbon(source))
 		return
 	var/vamp_examine = return_vamp_examine(examiner)
@@ -8,8 +7,9 @@
 		examine_text += vamp_examine
 	SEND_SIGNAL(src, COMSIG_BLOODSUCKER_EXAMINE, source, examiner, examine_text)
 
-/datum/antagonist/bloodsucker/proc/BuyPowers(powers = list())
-	for(var/datum/action/cooldown/bloodsucker/power as anything in powers)
+/datum/antagonist/bloodsucker/proc/BuyPowers(powers_list = list())
+	powers_list = use_rest_args(powers_list, args)
+	for(var/datum/action/cooldown/bloodsucker/power as anything in powers_list)
 		BuyPower(power)
 
 ///Called when a Bloodsucker buys a power: (power)
@@ -36,8 +36,9 @@
 			RemovePower(power)
 
 // UPGRADES, for brujah!
-/datum/antagonist/bloodsucker/proc/BuyUpgrades(list/upgrades = list())
-	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrades)
+/datum/antagonist/bloodsucker/proc/BuyUpgrades(list/upgrade_list = list())
+	upgrade_list = use_rest_args(upgrade_list, args)
+	for(var/datum/bloodsucker_upgrade/upgrade as anything in upgrade_list)
 		BuyUpgrade(upgrade)
 
 /datum/antagonist/bloodsucker/proc/BuyUpgrade(datum/bloodsucker_upgrade/upgrade)
@@ -58,6 +59,14 @@
 	for(var/datum/action/cooldown/bloodsucker/power as anything in powers)
 		if(power?.type == power_to_remove)
 			RemovePower(power)
+
+/datum/antagonist/bloodsucker/proc/use_rest_args(list/initial_list, list/args)
+	var/list/new_list = list()
+	if(length(args) > 1)
+		if(!islist(initial_list) && istype(initial_list))
+			new_list += initial_list
+		new_list += args
+	return new_list
 
 ///When a Bloodsucker breaks the Masquerade, they get their HUD icon changed, and Malkavian Bloodsuckers get alerted.
 /datum/antagonist/bloodsucker/proc/break_masquerade(mob/admin)

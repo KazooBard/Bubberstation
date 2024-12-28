@@ -5,8 +5,6 @@
 
 /datum/bloodsucker_upgrade/brujah/defense
 	name = "defense"
-	level_current = 1
-	purchase_flags = BRUJAH_CAN_BUY
 	gain_message = "You have gained defense upgrade 1!"
 	var/physical_modifier
 	var/starting_brute
