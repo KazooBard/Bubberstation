@@ -1,7 +1,7 @@
 /datum/action/cooldown/bloodsucker/frenzy
 	name = "Frenzy"
 	desc = "Tap into your primal side to enter frenzy!"
-	button_icon_state = "power_fortitude"
+	button_icon_state = "power_bleed"
 	power_flags = BP_AM_STATIC_COOLDOWN
 	purchase_flags = BRUJAH_CAN_BUY
 	cooldown_time = 20 SECONDS

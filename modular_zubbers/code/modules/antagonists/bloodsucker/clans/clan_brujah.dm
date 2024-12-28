@@ -14,6 +14,7 @@
 	regeneration_modifier_per_level = 0.1
 	frenzy_threshold_enter = 100
 	frenzy_threshold_exit = 200
+	purchasable_typepath = /datum/bloodsucker_upgrade
 
 /datum/bloodsucker_clan/brujah/on_enter_frenzy(datum/antagonist/bloodsucker/source)
 	ADD_TRAIT(source, TRAIT_STUNIMMUNE, FRENZY_TRAIT)
@@ -49,7 +50,7 @@
 	for(var/datum/action/cooldown/bloodsucker/power in bloodsuckerdatum.powers)
 		if(power.purchase_flags & buy_power_flags)
 			bloodsuckerdatum.RemovePower(power)
-	for(var/datum/bloodsucker_upgrade/brujah/upgrade in bloodsuckerdatum.upgrades)
+	for(var/datum/bloodsucker_upgrade/upgrade in bloodsuckerdatum.upgrades)
 		if(upgrade.purchase_flags & buy_power_flags)
 			bloodsuckerdatum.RemoveUpgrade(upgrade)
 	return ..()
@@ -78,10 +79,6 @@
 	)
 	. = ..()
 
-/datum/bloodsucker_clan/brujah/is_valid_purchase_type(purchase)
-	var/bought = new purchase
-	. = istype(bought, /datum/bloodsucker_upgrade)
-	qdel(bought)
 
 /datum/bloodsucker_clan/brujah/purchase_choice(datum/antagonist/bloodsucker/source, datum/bloodsucker_upgrade/upgrade)
 	var/datum/bloodsucker_upgrade/already_known = locate(upgrade) in bloodsuckerdatum.upgrades

@@ -36,6 +36,7 @@
 	var/regeneration_modifier_per_level = 0.05
 	var/frenzy_threshold_enter = FRENZY_THRESHOLD_ENTER
 	var/frenzy_threshold_exit = FRENZY_THRESHOLD_EXIT
+	var/purchasable_typepath = /datum/action/cooldown/bloodsucker
 
 /datum/bloodsucker_clan/New(datum/antagonist/bloodsucker/owner_datum)
 	. = ..()
@@ -207,7 +208,7 @@
 		check_list = bloodsuckerdatum.powers
 	)
 	var/mob/living/carbon/human/human_user = bloodsuckerdatum.owner.current
-	if(!power || !is_valid_purchase_type(power))
+	if(!power || !ispath(power, purchasable_typepath))
 		return FALSE
 	if(cost_rank && bloodsuckerdatum.GetUnspentRank() <= 0)
 		return FALSE
@@ -226,11 +227,6 @@
 		to_chat(human_user, span_notice("You already know [initial(power.name)]!"))
 		return FALSE
 	return TRUE
-
-/datum/bloodsucker_clan/proc/is_valid_purchase_type(purchase)
-	var/bought = new purchase
-	. = istype(bought, /datum/action/cooldown/bloodsucker)
-	qdel(bought)
 
 /datum/bloodsucker_clan/proc/finalize_spend_rank(datum/antagonist/bloodsucker/source, cost_rank = TRUE, blood_cost)
 	level_up_powers(source)

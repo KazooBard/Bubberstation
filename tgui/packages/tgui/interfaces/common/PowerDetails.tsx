@@ -62,21 +62,28 @@ export const PowerDetails = (props: PowerDetailsProps) => {
         </Stack.Item>
         <Stack.Divider />
         <Stack.Item grow fontSize="16px" width="40%">
-          {selectedPower?.power_explanation?.length &&
-            selectedPower.power_explanation.map((line, index) => {
-              if (index === 0) {
-                return line;
-              } else {
-                return (
-                  <>
-                    <br />
-                    {line}
-                  </>
-                );
-              }
-            })}
+          {PowerExplanation()}
         </Stack.Item>
       </Stack>
     </Section>
   );
+
+  function PowerExplanation() {
+    if (Array.isArray(selectedPower.power_explanation)) {
+      return selectedPower.power_explanation.map((line, index) => {
+        if (index === 0) {
+          return line;
+        } else {
+          return (
+            <>
+              <br />
+              {line}
+            </>
+          );
+        }
+      });
+    } else {
+      return selectedPower.power_explanation;
+    }
+  }
 };

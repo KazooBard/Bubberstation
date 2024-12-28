@@ -3,16 +3,17 @@
 #define DEFENSE_ANTI_WOUND_LEVEL 3
 #define DEFENSE_BONUS_HP_LEVEL 4
 
-/datum/bloodsucker_upgrade/brujah/defense
+/datum/bloodsucker_upgrade/defense
 	name = "defense"
 	gain_message = "You have gained defense upgrade 1!"
+	purchase_flags = BRUJAH_CAN_BUY
 	var/physical_modifier
 	var/starting_brute
 	var/starting_burn
 	var/starting_stamina
 	var/bonus_max_hp = 90
 
-/datum/bloodsucker_upgrade/brujah/defense/on_gain(mob/living/carbon/human/user)
+/datum/bloodsucker_upgrade/defense/on_gain(mob/living/carbon/human/user)
 	user.playsound_local(get_turf(user), 'sound/effects/hallucinations/wail.ogg', 80, FALSE, pressure_affected = FALSE, use_reverb = FALSE)
 	physical_modifier = min(1 - (0.05 * level_current)) // 10% dmr per level
 	starting_brute = user.physiology.brute_mod
@@ -28,7 +29,7 @@
 	if(level_current >= DEFENSE_ANTI_WOUND_LEVEL)
 		ADD_TRAIT(user, TRAIT_HARDLY_WOUNDED, BLOODSUCKER_TRAIT)
 
-/datum/bloodsucker_upgrade/brujah/defense/on_loss(mob/living/carbon/human/user)
+/datum/bloodsucker_upgrade/defense/on_loss(mob/living/carbon/human/user)
 	user.physiology.brute_mod = starting_brute
 	user.physiology.burn_mod = starting_burn
 

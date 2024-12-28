@@ -44,6 +44,3 @@
 /datum/bloodsucker_upgrade/proc/on_loss(mob/owner)
 
 /datum/bloodsucker_upgrade/proc/on_upgrade()
-
-/datum/bloodsucker_upgrade/brujah
-	purchase_flags = BRUJAH_CAN_BUY

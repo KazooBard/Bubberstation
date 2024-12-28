@@ -21,7 +21,7 @@ export type ClanInfo = {
 
 export type PowerInfo = {
   power_name: string;
-  power_explanation: string[];
+  power_explanation: string | string[];
   power_icon: string;
 };
 

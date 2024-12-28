@@ -1,7 +1,9 @@
-/datum/bloodsucker_upgrade/brujah/offense
+/datum/bloodsucker_upgrade/offense
 	name = "offense"
+	purchase_flags = BRUJAH_CAN_BUY
 
-/datum/bloodsucker_upgrade/brujah/offense/on_gain(mob/living/carbon/user)
+
+/datum/bloodsucker_upgrade/offense/on_gain(mob/living/carbon/user)
 	var/obj/item/bodypart/user_left_hand = user.get_bodypart(BODY_ZONE_L_ARM)
 	var/obj/item/bodypart/user_right_hand = user.get_bodypart(BODY_ZONE_R_ARM)
 	if(!user_right_hand || !user_left_hand)
