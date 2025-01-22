@@ -50,3 +50,4 @@
 				/obj/item/stack/sheet/cloth = 2)
 	time = 80
 	category = CAT_MISC
+	

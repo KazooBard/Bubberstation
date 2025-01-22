@@ -58,6 +58,13 @@
 	item = /obj/item/clothing/gloves/rapid
 	cost = 8
 
+/datum/uplink_item/dangerous/gasharpoon //BUBBERSTATION EDIT
+	name = "Gas-harpoon"
+	desc = "A repurposed space-whaling tool attached to a glove, can be used as a sturdy weapon in both hands, or worn as a glove to allow access to its harpoon."
+	item = /obj/item/clothing/gloves/gasharpoon
+	cost = 10
+	surplus = 0
+
 /datum/uplink_item/dangerous/doublesword
 	name = "Double-Bladed Energy Sword"
 	desc = "The double-bladed energy sword does slightly more damage than a standard energy sword and will deflect \
