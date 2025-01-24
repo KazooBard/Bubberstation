@@ -52,6 +52,9 @@
 #define STASIS_SLIME_BZ "stasis_slime_bz"
 
 #define STASIS_NETPOD_EFFECT "stasis_netpod"
+#define STATUS_EFFECT_EXPOSED /datum/status_effect/exposed //increases incoming damage
+
+#define STATUS_EFFECT_EXPOSED_HARPOONED /datum/status_effect/exposed/harpooned //increases incoming damage when hit by a gasharpoon
 
 /// Causes the mob to become blind via the passed source
 #define become_blind(source) apply_status_effect(/datum/status_effect/grouped/blindness, source)

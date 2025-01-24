@@ -1,17 +1,67 @@
-/obj/projectile/wire/harpoon //BUBBERSTATION EDIT - YOG PORT
-	name = "harpoon"
-	icon_state = "harpoonhead"
+////////////////// Wire Gun Item //////////////////
+/obj/item/gun/magic/wire
+	name = "grappling wire"
+	desc = "A combat-ready cable usable for closing the distance, bringing you to walls and heavy targets you hit or bringing lighter ones to you."
+	ammo_type = /obj/item/ammo_casing/magic/wire
+	icon_state = "hook"
+	lefthand_file = 'icons/mob/inhands/weapons/melee_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/weapons/melee_righthand.dmi'
+	fire_sound = 'sound/items/weapons/batonextend.ogg'
+	max_charges = 3
+	item_flags = NEEDS_PERMIT | DROPDEL | NOBLUDGEON
+	weapon_weight = WEAPON_MEDIUM
+	force = 0
+	can_charge = FALSE
+
+/obj/item/gun/magic/wire/Initialize(mapload)
+	. = ..()
+	ADD_TRAIT(src, HAND_REPLACEMENT_TRAIT, NOBLUDGEON)
+	if(ismob(loc))
+		loc.visible_message(span_warning("A long cable comes out from [loc.name]'s arm!"), span_warning("You extend the buster's wire from your arm."))
+
+
+/obj/item/gun/magic/wire/process_chamber()
+	. = ..()
+	if(!charges)
+		qdel(src)
+
+
+/obj/item/ammo_casing/magic/wire
+	name = "hook"
+	desc = "A hook."
+	projectile_type = /obj/projectile/wire
+	caliber = CALIBER_HOOK
+	icon_state = "hook"
+
+
+/obj/projectile/wire
+	name = "hook"
+	icon_state = "hook"
+	icon = 'icons/effects/beam.dmi'
 	pass_flags = PASSTABLE
-	damage = 10
+	damage = 0
 	armour_penetration = 100
 	damage_type = BRUTE
 	range = 8
 	hitsound = 'sound/effects/splat.ogg'
-	wire_icon_state = "harpoonrope"
-	immobilize = 1 SECONDS
+	knockdown = 0
+	var/wire_icon_state = "chain"
+	var/wire
 
-/obj/projectile/wire/harpoon/on_hit(atom/target, blocked = 0, pierce_hit = FALSE)
+/obj/projectile/wire/fire(setAngle)
+	if(firer)
+		wire = firer.Beam(src, icon_state = wire_icon_state, time = INFINITY, maxdistance = INFINITY)
 	..()
+
+/// Helper proc exclusively used for pulling the buster arm USER towards something anchored
+/obj/projectile/wire/proc/zip(mob/living/user, turf/open/target)
+	to_chat(user, span_warning("You pull yourself towards [target]."))
+	// playsound(user, 'sound/magic/tail_swing.ogg', 10, TRUE)
+	user.Immobilize(0.2 SECONDS)//so it's not cut short by walking
+	user.forceMove(get_step_towards(target, user))
+
+/obj/projectile/wire/harpoon/on_hit(atom/target, blocked = 0, pierce_hit)
+	. = ..()
 	var/mob/living/L = target
 	var/mob/living/carbon/human/H = firer
 	if(!L)
@@ -58,3 +108,7 @@
 	if(iswallturf(target)) // If we hit a wall, pull us to it
 		var/turf/W = target
 		zip(H, W)
+
+/obj/projectile/wire/Destroy()
+	qdel(wire)
+	return ..()

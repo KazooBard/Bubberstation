@@ -6568,6 +6568,7 @@
 #include "code\ze_genesis_call\genesis_call.dm"
 #include "icons\obj\devices\busterarm\busterharpoond.dm"
 #include "icons\obj\devices\busterarm\gasharpoon.dm"
+#include "icons\obj\devices\busterarm\wiresnatch.dm"
 #include "interface\interface.dm"
 #include "interface\menu.dm"
 #include "interface\stylesheet.dm"

@@ -2,9 +2,8 @@
 	name = "gasharpoon"
 	desc = "A metal gauntlet with a harpoon attached, powered by gasoline and traditionally used by space-whalers."
 	///reminder to channge all this -- I changed it :)
-	// icon = 'icons/obj/traitor.dmi'
-	// icon_state = "gasharpoon"
-	// item_state = "gasharpoon"
+	icon = 'icons/obj/weapons/dusters.dmi'
+	icon_state = "gasharpoon"
 	lefthand_file = 'icons/mob/inhands/weapons/melee_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/weapons/melee_righthand.dmi'
 	attack_verb_continuous = list("attacks", "pokes", "jabs", "tears", "lacerates", "gores")
@@ -67,7 +66,7 @@
 	harpoon_shot.preparePixelProjectile(target, user, params)
 	harpoon_shot.firer = user
 	harpoon_shot.fire()
-	playsound(src, 'sound/weapons/batonextend.ogg', 50, FALSE)
+	playsound(src, 'sound/items/weapons/batonextend.ogg', 50, FALSE)
 	COOLDOWN_START(src, harpoon_cd, 10 SECONDS)
 	return COMSIG_MOB_CANCEL_CLICKON
 
@@ -75,9 +74,9 @@
 	if(!user || !user.combat_mode || (!isliving(target) && !isobj(target)) || isitem(target))
 		return NONE
 	do_attack(user, target, force * 2)
-	playsound(loc, 'sound/weapons/bladeslice.ogg', 50, 1)
+	playsound(loc, 'sound/items/weapons/bladeslice.ogg', 50, 1)
 	target.visible_message(span_danger("[user]'s gasharpoon pierces through [target.name]!"))
-	return COMPONENT_NO_ATTACK_HAND
+	return COMPONENT_CANCEL_ATTACK_CHAIN
 
 /obj/item/clothing/gloves/gasharpoon/attack(mob/living/target, mob/living/user)
 	power_harpoon(user, target)
