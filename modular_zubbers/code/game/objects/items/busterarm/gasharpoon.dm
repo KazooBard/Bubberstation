@@ -4,8 +4,11 @@
 	///reminder to channge all this -- I changed it :)
 	icon = 'icons/obj/weapons/dusters.dmi'
 	icon_state = "gasharpoon"
-	lefthand_file = 'icons/mob/inhands/weapons/melee_lefthand.dmi'
-	righthand_file = 'icons/mob/inhands/weapons/melee_righthand.dmi'
+	worn_icon = "modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi'"
+	worn_icon_state = "gasharpoon"
+	inhand_icon_state = "gasharpoon"
+	lefthand_file = 'modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi'
+	righthand_file = 'modular_zubbers/icons/mob/inhands/weapons/knuckles_righthand.dmi'
 	attack_verb_continuous = list("attacks", "pokes", "jabs", "tears", "lacerates", "gores")
 	attack_verb_simple = list("attack", "poke", "jab", "tear", "lacerate", "gore")
 	force = 10
@@ -38,22 +41,18 @@
 	. = ..()
 	if(slot & ITEM_SLOT_GLOVES)
 		RegisterSignal(user, COMSIG_LIVING_EARLY_UNARMED_ATTACK, PROC_REF(power_harpoon))
-		RegisterSignal(user, COMSIG_MOB_CLICKON, PROC_REF(on_click))
+		RegisterSignal(user, COMSIG_MOB_ATTACK_RANGED_SECONDARY, PROC_REF(on_click))
 
 /obj/item/clothing/gloves/gasharpoon/dropped(mob/user)
 	. = ..()
 	if(user.get_item_by_slot(ITEM_SLOT_GLOVES)==src)
 		UnregisterSignal(user, COMSIG_LIVING_EARLY_UNARMED_ATTACK)
-		UnregisterSignal(user, COMSIG_MOB_CLICKON)
+		UnregisterSignal(user, COMSIG_MOB_ATTACK_RANGED_SECONDARY)
 	return ..()
 
-/obj/item/clothing/gloves/gasharpoon/proc/on_click(mob/living/user, atom/target, params)
+/obj/item/clothing/gloves/gasharpoon/proc/on_click(mob/living/user, atom/target, modifiers)
 	if(!user.combat_mode || !isturf(user.loc))
-		return NONE
-	var/list/modifiers = params2list(params)
-	if(modifiers[SHIFT_CLICK] || modifiers[CTRL_CLICK] || modifiers[ALT_CLICK])
-		return NONE
-	if(!modifiers[RIGHT_CLICK])
+		to_chat(user, span_notice("[src] noturfnocombat..."))
 		return NONE
 	if(HAS_TRAIT(user, TRAIT_PACIFISM))
 		to_chat(user, span_notice("[src] is lethally chambered! You don't want to risk harming anyone..."))
@@ -61,11 +60,13 @@
 	if(!COOLDOWN_FINISHED(src, harpoon_cd))
 		balloon_alert(user, "can't do that yet!")
 		return COMSIG_MOB_CANCEL_CLICKON
-
-	var/obj/projectile/wire/harpoon/harpoon_shot = new(get_turf(src))
-	harpoon_shot.preparePixelProjectile(target, user, params)
+	to_chat(user, span_warning("You fire out a harpoon!"))
+	user.changeNext_move(CLICK_CD_RANGE)
+	user.newtonian_move(get_dir(target, user))
+	var/obj/projectile/wire/harpoon/harpoon_shot = new /obj/projectile/wire/harpoon(get_turf(user))
 	harpoon_shot.firer = user
-	harpoon_shot.fire()
+	harpoon_shot.preparePixelProjectile(target, user)
+	to_chat(user, span_notice("[src] fired..."))
 	playsound(src, 'sound/items/weapons/batonextend.ogg', 50, FALSE)
 	COOLDOWN_START(src, harpoon_cd, 10 SECONDS)
 	return COMSIG_MOB_CANCEL_CLICKON
