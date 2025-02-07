@@ -5,8 +5,8 @@
 	damage = 10
 	armour_penetration = 100
 	damage_type = BRUTE
-	range = 8
+	range = 10
+	speed = 0.6
 	hitsound = 'sound/effects/splat.ogg'
-	wire_icon_state = "harpoonrope"
 	immobilize = 1 SECONDS
 	effect = STATUS_EFFECT_EXPOSED_HARPOONED

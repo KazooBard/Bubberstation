@@ -42,23 +42,27 @@
 	range = 8
 	hitsound = 'sound/effects/splat.ogg'
 	knockdown = 0
-	var/wire_icon_state = "chain"
-	var/wire
+	var/datum/beam/initial_chain
+	var/chain_icon = 'icons/effects/beam.dmi' // SKYRAT EDIT ADDITION
 	var/effect
 
 /obj/projectile/wire/fire(setAngle)
 	if(firer)
-		wire = firer.Beam(src, icon_state = wire_icon_state, time = INFINITY, maxdistance = INFINITY)
-	..()
+		initial_chain = firer.Beam(src, icon_state = "chain", icon = chain_icon, emissive = FALSE) // SKYRAT EDIT CHANGE - Adds icon arg - ORIGINAL: chain = firer.Beam(src, icon_state = "chain", emissive = FALSE)
+	return ..()
+
+/obj/projectile/hook/Destroy(force)
+	QDEL_NULL(initial_chain)
+	return ..()
 
 /// Helper proc exclusively used for pulling the buster arm USER towards something anchored
 /obj/projectile/wire/proc/zip(mob/living/user, turf/open/target)
 	to_chat(user, span_warning("You pull yourself towards [target]."))
 	new /obj/effect/temp_visual/mook_dust(drop_location())
 	RegisterSignal(user, COMSIG_MOVABLE_IMPACT, PROC_REF(strike_target))
-	user.throw_at(target = target, range = 9, speed = 1, spin = FALSE, gentle = TRUE, quickstart = TRUE)
+	user.throw_at(target = target, range = 9, speed = 3, spin = FALSE, gentle = TRUE, quickstart = TRUE)
 
-/obj/projectile/wire/proc/strike_target(mob/living/source, mob/living/victim, datum/thrownthing/throwingdatum)
+/obj/projectile/wire/proc/strike_target(mob/living/user, mob/living/victim, datum/thrownthing/throwingdatum)
 	SIGNAL_HANDLER
 
 	if(!istype(victim))
@@ -66,7 +70,7 @@
 
 	victim.apply_damage(30)
 	playsound(victim, 'sound/effects/hit_kick.ogg', 50)
-	var/turf/target_turf = get_ranged_target_turf(victim, source.dir, 3)
+	var/turf/target_turf = get_ranged_target_turf(victim, user.dir, 3)
 	if(isnull(target_turf))
 		return
 	victim.throw_at(target = target_turf, speed = 1, spin = TRUE, range = 3)
@@ -77,11 +81,9 @@
 	var/mob/living/carbon/human/H = firer
 	if(!L)
 		return
-	L.apply_status_effect(effect)
 	if(isobj(target)) // If it's an object
 		var/obj/item/I = target
 		if(!I.anchored) // Give it to us if it's not anchored
-			I.throw_at(get_step_towards(I,H), 8, 2)
 			H.visible_message(span_danger("[I] is pulled by [H]'s wiresnatch!"))
 			if(istype(I, /obj/item/clothing/head))
 				H.equip_to_slot_if_possible(I, ITEM_SLOT_HEAD)
@@ -94,7 +96,7 @@
 		var/turf/T = get_step(get_turf(H), H.dir)
 		var/turf/Q = get_turf(H)
 		var/obj/item/bodypart/limb_to_hit = L.get_bodypart(H.zone_selected)
-		L.say("OOF OUCH MY BONES")
+		L.apply_status_effect(effect)
 		var/armor = L.run_armor_check(limb_to_hit, MELEE, armour_penetration = 35)
 		if(!L.anchored) // Only pull them if they're unanchored
 			if(istype(H))
@@ -106,22 +108,19 @@
 					playsound(L,'sound/effects/pop_expl.ogg', 130, 1)
 					L.apply_damage(15, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
 					L.forceMove(Q)
-					L.say("OOF OUCH MY BONES")
 					return
 				// If we happen to be facing a dense object after the wire snatches them, like a table or window
 				for(var/obj/D in T.contents)
 					if(D.density == TRUE)
 						D.take_damage(50)
 						L.apply_damage(15, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
+						L.AdjustKnockdown(1 SECONDS)
 						L.forceMove(Q)
 						to_chat(H, span_warning("[H] catches [L] throws [L.p_them()] against [D]!"))
 						playsound(L,'sound/effects/pop_expl.ogg', 20, 1)
 						return
 				L.forceMove(T)
-	if(iswallturf(target)) // If we hit a wall, pull us to it
+	if(iswallturf(target) || isopenturf(target)) // If we hit a wall, pull us to it
 		var/turf/W = target
 		zip(H, W)
-
-/obj/projectile/wire/Destroy()
-	qdel(wire)
-	return ..()
+		qdel(src)

@@ -4,7 +4,7 @@
 	///reminder to channge all this -- I changed it :)
 	icon = 'icons/obj/weapons/dusters.dmi'
 	icon_state = "gasharpoon"
-	worn_icon = "modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi'"
+	worn_icon = "modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi"
 	worn_icon_state = "gasharpoon"
 	inhand_icon_state = "gasharpoon"
 	lefthand_file = 'modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi'
@@ -67,8 +67,9 @@
 	harpoon_shot.firer = user
 	harpoon_shot.preparePixelProjectile(target, user)
 	to_chat(user, span_notice("[src] fired..."))
+	INVOKE_ASYNC(harpoon_shot, TYPE_PROC_REF(/obj/projectile, fire))
 	playsound(src, 'sound/items/weapons/batonextend.ogg', 50, FALSE)
-	COOLDOWN_START(src, harpoon_cd, 10 SECONDS)
+	COOLDOWN_START(src, harpoon_cd, 2 SECONDS)
 	return COMSIG_MOB_CANCEL_CLICKON
 
 /obj/item/clothing/gloves/gasharpoon/proc/power_harpoon(mob/living/user, atom/movable/target)
