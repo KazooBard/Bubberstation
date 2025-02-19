@@ -9,4 +9,3 @@
 	speed = 0.6
 	hitsound = 'sound/effects/splat.ogg'
 	immobilize = 1 SECONDS
-	effect = STATUS_EFFECT_EXPOSED_HARPOONED

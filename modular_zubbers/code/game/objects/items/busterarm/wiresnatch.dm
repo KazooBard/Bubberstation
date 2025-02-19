@@ -96,7 +96,6 @@
 		var/turf/T = get_step(get_turf(H), H.dir)
 		var/turf/Q = get_turf(H)
 		var/obj/item/bodypart/limb_to_hit = L.get_bodypart(H.zone_selected)
-		L.apply_status_effect(effect)
 		var/armor = L.run_armor_check(limb_to_hit, MELEE, armour_penetration = 35)
 		if(!L.anchored) // Only pull them if they're unanchored
 			if(istype(H))
@@ -113,7 +112,7 @@
 				for(var/obj/D in T.contents)
 					if(D.density == TRUE)
 						D.take_damage(50)
-						L.apply_damage(15, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
+						L.apply_damage(25, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
 						L.AdjustKnockdown(1 SECONDS)
 						L.forceMove(Q)
 						to_chat(H, span_warning("[H] catches [L] throws [L.p_them()] against [D]!"))
