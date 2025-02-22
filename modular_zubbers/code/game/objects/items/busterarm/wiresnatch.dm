@@ -57,10 +57,13 @@
 
 /// Helper proc exclusively used for pulling the buster arm USER towards something anchored
 /obj/projectile/wire/proc/zip(mob/living/user, turf/open/target)
+	user.add_traits(TRAIT_MOVE_FLOATING, TRAIT_IMMOBILIZED, LEAPING_TRAIT)
 	to_chat(user, span_warning("You pull yourself towards [target]."))
 	new /obj/effect/temp_visual/mook_dust(drop_location())
 	RegisterSignal(user, COMSIG_MOVABLE_IMPACT, PROC_REF(strike_target))
-	user.throw_at(target = target, range = 9, speed = 3, spin = FALSE, gentle = TRUE, quickstart = TRUE)
+	user.throw_at(target = target, range = 9, speed = 5, spin = TRUE, gentle = TRUE, quickstart = TRUE)
+	sleep(10)
+	user.remove_traits(TRAIT_MOVE_FLOATING, TRAIT_IMMOBILIZED, LEAPING_TRAIT)
 
 /obj/projectile/wire/proc/strike_target(mob/living/user, mob/living/victim, datum/thrownthing/throwingdatum)
 	SIGNAL_HANDLER
@@ -69,6 +72,7 @@
 		return
 
 	victim.apply_damage(30)
+	victim.AdjustKnockdown(3 SECONDS)
 	playsound(victim, 'sound/effects/hit_kick.ogg', 50)
 	var/turf/target_turf = get_ranged_target_turf(victim, user.dir, 3)
 	if(isnull(target_turf))
@@ -112,9 +116,11 @@
 				for(var/obj/D in T.contents)
 					if(D.density == TRUE)
 						D.take_damage(50)
-						L.apply_damage(25, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
-						L.AdjustKnockdown(1 SECONDS)
+						L.apply_damage(40, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
+						L.AdjustKnockdown(2 SECONDS)
 						L.forceMove(Q)
+						L.throw_at(target = T, speed = 3, spin = TRUE, range = 3)
+
 						to_chat(H, span_warning("[H] catches [L] throws [L.p_them()] against [D]!"))
 						playsound(L,'sound/effects/pop_expl.ogg', 20, 1)
 						return

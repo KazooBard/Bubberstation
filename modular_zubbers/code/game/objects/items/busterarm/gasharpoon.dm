@@ -4,7 +4,7 @@
 	///reminder to channge all this -- I changed it :)
 	icon = 'icons/obj/weapons/dusters.dmi'
 	icon_state = "gasharpoon"
-	worn_icon = "modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi"
+	worn_icon = "modular_zubbers/icons/mob/inhands/weapons/knuckles_righthand.dmi"
 	worn_icon_state = "gasharpoon"
 	inhand_icon_state = "gasharpoon"
 	lefthand_file = 'modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi'
@@ -17,6 +17,8 @@
 	strip_delay = 15 SECONDS
 	cold_protection = HANDS
 	heat_protection = HANDS
+	wound_bonus = -10
+	bare_wound_bonus = 5
 	w_class = WEIGHT_CLASS_NORMAL
 	resistance_flags = FIRE_PROOF | ACID_PROOF
 	var/click_delay = 1.5
