@@ -4,7 +4,7 @@
 	///reminder to channge all this -- I changed it :)
 	icon = 'icons/obj/weapons/dusters.dmi'
 	icon_state = "gasharpoon"
-	worn_icon = "modular_zubbers/icons/mob/inhands/weapons/knuckles_righthand.dmi"
+	worn_icon = 'modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi'
 	worn_icon_state = "gasharpoon"
 	inhand_icon_state = "gasharpoon"
 	lefthand_file = 'modular_zubbers/icons/mob/inhands/weapons/knuckles_lefthand.dmi'
@@ -14,13 +14,16 @@
 	force = 10
 	throwforce = 10
 	throw_range = 7
-	strip_delay = 15 SECONDS
+	strip_delay = 10 SECONDS //Clunky
+	equip_delay_self = 5 SECONDS //It's not a stealth weapon
+	sharpness = SHARP_POINTY
 	cold_protection = HANDS
 	heat_protection = HANDS
 	wound_bonus = -10
 	bare_wound_bonus = 5
 	w_class = WEIGHT_CLASS_NORMAL
-	resistance_flags = FIRE_PROOF | ACID_PROOF
+	resistance_flags = FIRE_PROOF
+	siemens_coefficient = 1 //Big metal harpoon? Yeowch
 	var/click_delay = 1.5
 	COOLDOWN_DECLARE(harpoon_cd)
 	armor_type = /datum/armor/gasharpoon
@@ -32,7 +35,7 @@
 	energy = 0
 	bomb = 0
 	bio = 0
-	acid = 100
+	acid = 0
 	fire = 100 //Giant metal fucking harpoon, I can see the OG's vision.
 
 /obj/item/clothing/gloves/gasharpoon/examine(mob/user)
@@ -70,7 +73,7 @@
 	harpoon_shot.preparePixelProjectile(target, user)
 	to_chat(user, span_notice("[src] fired..."))
 	INVOKE_ASYNC(harpoon_shot, TYPE_PROC_REF(/obj/projectile, fire))
-	playsound(src, 'sound/items/weapons/batonextend.ogg', 50, FALSE)
+	playsound(src, 'sound/items/weapons/zipline_fire.ogg', 50, FALSE)
 	COOLDOWN_START(src, harpoon_cd, 2 SECONDS)
 	return COMSIG_MOB_CANCEL_CLICKON
 

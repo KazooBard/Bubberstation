@@ -6,7 +6,7 @@
 	icon_state = "hook"
 	lefthand_file = 'icons/mob/inhands/weapons/melee_lefthand.dmi'
 	righthand_file = 'icons/mob/inhands/weapons/melee_righthand.dmi'
-	fire_sound = 'sound/items/weapons/batonextend.ogg'
+	fire_sound = 'sound/items/weapons/zipline_fire.ogg'
 	max_charges = 3
 	item_flags = NEEDS_PERMIT | DROPDEL | NOBLUDGEON
 	weapon_weight = WEAPON_MEDIUM
@@ -40,15 +40,16 @@
 	armour_penetration = 100
 	damage_type = BRUTE
 	range = 8
-	hitsound = 'sound/effects/splat.ogg'
+	hitsound = 'sound/items/weapons/zipline_hit.ogg'
 	knockdown = 0
 	var/datum/beam/initial_chain
 	var/chain_icon = 'icons/effects/beam.dmi' // SKYRAT EDIT ADDITION
-	var/effect
+	var/effective
+	var/grapplers_traits = list()
 
 /obj/projectile/wire/fire(setAngle)
 	if(firer)
-		initial_chain = firer.Beam(src, icon_state = "chain", icon = chain_icon, emissive = FALSE) // SKYRAT EDIT CHANGE - Adds icon arg - ORIGINAL: chain = firer.Beam(src, icon_state = "chain", emissive = FALSE)
+		initial_chain = firer.Beam(src, icon_state = "zipline_hook", icon = chain_icon, emissive = FALSE) // SKYRAT EDIT CHANGE - Adds icon arg - ORIGINAL: chain = firer.Beam(src, icon_state = "chain", emissive = FALSE)
 	return ..()
 
 /obj/projectile/hook/Destroy(force)
@@ -57,13 +58,17 @@
 
 /// Helper proc exclusively used for pulling the buster arm USER towards something anchored
 /obj/projectile/wire/proc/zip(mob/living/user, turf/open/target)
-	user.add_traits(TRAIT_MOVE_FLOATING, TRAIT_IMMOBILIZED, LEAPING_TRAIT)
+	user.add_traits(grapplers_traits, LEAPING_TRAIT)
+	user.visible_message(span_danger("Added traits!"))
 	to_chat(user, span_warning("You pull yourself towards [target]."))
 	new /obj/effect/temp_visual/mook_dust(drop_location())
 	RegisterSignal(user, COMSIG_MOVABLE_IMPACT, PROC_REF(strike_target))
 	user.throw_at(target = target, range = 9, speed = 5, spin = TRUE, gentle = TRUE, quickstart = TRUE)
-	sleep(10)
-	user.remove_traits(TRAIT_MOVE_FLOATING, TRAIT_IMMOBILIZED, LEAPING_TRAIT)
+	addtimer(CALLBACK(src, PROC_REF(landed), user), 1 SECONDS)
+
+/obj/projectile/wire/proc/landed(mob/living/user)
+	user.remove_traits(grapplers_traits, LEAPING_TRAIT)
+	user.visible_message(span_danger("removed traits!"))
 
 /obj/projectile/wire/proc/strike_target(mob/living/user, mob/living/victim, datum/thrownthing/throwingdatum)
 	SIGNAL_HANDLER
@@ -71,7 +76,7 @@
 	if(!istype(victim))
 		return
 
-	victim.apply_damage(30)
+	victim.apply_damage(40)
 	victim.AdjustKnockdown(3 SECONDS)
 	playsound(victim, 'sound/effects/hit_kick.ogg', 50)
 	var/turf/target_turf = get_ranged_target_turf(victim, user.dir, 3)
@@ -94,6 +99,7 @@
 				H.visible_message(span_danger("[H] pulls [I] onto [H.p_their()] head!"))
 			else
 				H.put_in_hands(I)
+			qdel(src)
 			return
 		zip(H, I)
 	if(isliving(target)) // If it's somebody
@@ -108,24 +114,22 @@
 				if(T.density) // If we happen to be facing a wall after the wire snatches them
 					to_chat(H, span_warning("[H] catches [L] and throws [L.p_them()] against [T]!"))
 					to_chat(L, span_userdanger("[H] crushes you against [T]!"))
-					playsound(L,'sound/effects/pop_expl.ogg', 130, 1)
-					L.apply_damage(15, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
+					playsound(L,'sound/effects/meteorimpact.ogg', 130, 1)
+					L.apply_damage(35, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
+					L.AdjustKnockdown(2 SECONDS)
 					L.forceMove(Q)
+					qdel(src)
 					return
 				// If we happen to be facing a dense object after the wire snatches them, like a table or window
 				for(var/obj/D in T.contents)
 					if(D.density == TRUE)
 						D.take_damage(50)
-						L.apply_damage(40, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
+						L.apply_damage(35, BRUTE, limb_to_hit, armor, wound_bonus=CANT_WOUND)
 						L.AdjustKnockdown(2 SECONDS)
 						L.forceMove(Q)
-						L.throw_at(target = T, speed = 3, spin = TRUE, range = 3)
-
-						to_chat(H, span_warning("[H] catches [L] throws [L.p_them()] against [D]!"))
-						playsound(L,'sound/effects/pop_expl.ogg', 20, 1)
+						to_chat(H, span_warning("[H] catches [L] and slams [L.p_them()] against [T]!"))
+						to_chat(L, span_userdanger("[H] crushes you against [T]!"))
+						playsound(L,'sound/effects/meteorimpact.ogg', 20, 1)
+						qdel(src)
 						return
 				L.forceMove(T)
-	if(iswallturf(target) || isopenturf(target)) // If we hit a wall, pull us to it
-		var/turf/W = target
-		zip(H, W)
-		qdel(src)
