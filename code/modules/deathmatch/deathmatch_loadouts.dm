@@ -573,6 +573,45 @@
 	r_pocket = /obj/item/assembly/flash
 	l_pocket = /obj/item/melee/baton/telescopic
 
+/datum/outfit/deathmatch_loadout/slug
+	name = "Debug: Riotman"
+	display_name = "Riot Shield Guy"
+	desc = "LEVEL V MELEE LETS GOOO."
+
+	head = /obj/item/clothing/head/helmet/toggleable/riot
+	ears = 	/datum/outfit/job/hos::ears
+	uniform = /obj/item/clothing/under/rank/security/head_of_security/alt
+	shoes = /datum/outfit/job/hos::shoes
+	neck = /datum/outfit/job/hos::neck
+	glasses = /datum/outfit/job/hos::glasses
+	suit = /obj/item/clothing/suit/armor/riot
+	suit_store = /obj/item/gun/ballistic/shotgun/automatic/combat/compact
+	gloves = /obj/item/clothing/gloves/tackler/combat
+	belt = /obj/item/gun/energy/e_gun/hos
+	r_hand = /obj/item/melee/baton/security/loaded
+	l_hand = /obj/item/shield/riot
+	l_pocket = /obj/item/grenade/flashbang
+	r_pocket = /obj/item/restraints/legcuffs/bola/energy
+
+/datum/outfit/deathmatch_loadout/slug
+	name = "Debug: bigbertha"
+	display_name = "BERTHA WOOOO"
+	desc = "LEVEL V MELEE LETS GOOO."
+
+	head = /obj/item/clothing/head/helmet/toggleable/riot
+	ears = 	/datum/outfit/job/hos::ears
+	uniform = /obj/item/clothing/under/rank/security/head_of_security/alt
+	shoes = /datum/outfit/job/hos::shoes
+	neck = /datum/outfit/job/hos::neck
+	glasses = /datum/outfit/job/hos::glasses
+	suit = /obj/item/clothing/suit/armor/riot
+	suit_store = /obj/item/gun/ballistic/shotgun/automatic/combat/compact
+	gloves = /obj/item/clothing/gloves/tackler/combat
+	belt = /obj/item/gun/energy/e_gun/hos
+	l_hand = /obj/item/shield/big_bertha
+	l_pocket = /obj/item/grenade/flashbang
+	r_pocket = /obj/item/restraints/legcuffs/bola/energy
+
 /datum/outfit/deathmatch_loadout/traitor
 	name = "Deathmatch: Traitor"
 	display_name = "Traitor"

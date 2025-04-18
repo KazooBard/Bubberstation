@@ -38,6 +38,7 @@
 
 	if(owner.stat == CONSCIOUS)
 		to_chat(owner, span_notice("You're too exhausted to keep going..."))
+		owner.say("Stamcrit")
 	owner.add_traits(list(TRAIT_INCAPACITATED, TRAIT_IMMOBILIZED, TRAIT_FLOORED), STAMINA)
 	return .
 

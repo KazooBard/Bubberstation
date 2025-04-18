@@ -201,7 +201,7 @@
  * * 50 to inf: Our target is hit with a significant chunk of stamina damage, put into an aggressive grab, and knocked down. They're probably not escaping after this. If our tackler is stamcrit when they land this, so is our target.
 */
 
-/datum/component/tackler/proc/positive_outcome(mob/living/carbon/user, mob/living/carbon/target, roll = 1, tackle_word = "tackle")
+/datum/component/tackler/proc/positive_outcome	(mob/living/carbon/user, mob/living/carbon/target, roll = 1, tackle_word = "tackle")
 	var/potential_outcome = (roll * 10)
 
 	if(ishuman(target))
@@ -469,7 +469,7 @@
 			attack_mod += 2
 			human_sacker.adjustStaminaLoss(20)
 
-	var/randomized_tackle_roll = rand(-3, 3) - defense_mod + attack_mod + skill_mod
+	var/randomized_tackle_roll = rand(-3, 3) - defense_mod + 5
 	return randomized_tackle_roll
 
 

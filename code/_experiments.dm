@@ -6,7 +6,7 @@
 // EXPERIMENT_MY_COOL_FEATURE
 // - Does something really cool, just so neat, absolutely banging, gaming and chill
 
-#if DM_VERSION < 515
+/*#if DM_VERSION < 515
 
 	// You can't X-macro custom names :(
 	#ifdef EXPERIMENT_MY_COOL_FEATURE
@@ -19,4 +19,4 @@
 
 #if DM_VERSION >= 517
 	#error "Remove all 516 experiments"
-#endif
+#endif*/

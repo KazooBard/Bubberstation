@@ -59,13 +59,6 @@
 	. = COMPONENT_ITEM_CHARGED
 
 	// Non-self charging staves and wands can potentially expire
-	if(!can_charge && max_charges && prob(80))
-		max_charges--
-
-	if(max_charges <= 0)
-		max_charges = 0
-		. |= COMPONENT_ITEM_BURNT_OUT
-
 	charges = max_charges
 	update_appearance(UPDATE_ICON_STATE)
 	recharge_newshot()

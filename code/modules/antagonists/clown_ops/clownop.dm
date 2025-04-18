@@ -91,3 +91,9 @@
 	var/obj/item/mod/module/armor_booster/booster = locate() in H.back
 	booster.active = TRUE
 	H.update_worn_back()
+
+/datum/outfit/riotshield
+	name = "Riot operative"
+
+	back = /obj/item/mod/control/pre_equipped/empty/syndicate/honkerative
+	uniform = /obj/item/clothing/under/syndicate

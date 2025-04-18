@@ -1842,9 +1842,8 @@
 /datum/reagent/plantnutriment/eznutriment/on_hydroponics_apply(obj/machinery/hydroponics/mytray, mob/user)
 	var/obj/item/seeds/myseed = mytray.myseed
 	if(!isnull(myseed))
-		myseed.adjust_instability(0.2)
-		myseed.adjust_potency(round(volume * 0.3))
-		myseed.adjust_yield(round(volume * 0.1))
+		myseed.adjust_potency(round(volume * 5))
+		myseed.adjust_yield(round(volume * 5))
 
 /datum/reagent/plantnutriment/left4zednutriment
 	name = "Left 4 Zed"
@@ -1856,7 +1855,7 @@
 /datum/reagent/plantnutriment/left4zednutriment/on_hydroponics_apply(obj/machinery/hydroponics/mytray, mob/user)
 
 	mytray.adjust_plant_health(round(volume * 0.1))
-	mytray.myseed?.adjust_instability(round(volume * 0.2))
+	mytray.myseed?.adjust_instability(round(volume * 2))
 
 /datum/reagent/plantnutriment/robustharvestnutriment
 	name = "Robust Harvest"
