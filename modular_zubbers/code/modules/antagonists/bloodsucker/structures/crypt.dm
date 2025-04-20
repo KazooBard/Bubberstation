@@ -546,9 +546,11 @@
 	hunter_desc = "This is a chair that hurts those that try to buckle themselves onto it, though the Undead have no problem latching on.\n\
 		While buckled, Monsters can use this to telepathically communicate with eachother."
 	var/mutable_appearance/armrest
+	var/brujahthrone = FALSE //to simplify giving the xray and things
+	var/thronerange = 20 //for brujah's transmitting
 
 // Add rotating and armrest
-/obj/structure/bloodsucker/bloodthrone/Initialize()
+/obj/structure/bloodsucker/bloodthrone/Initialize(mapload)
 	AddComponent(/datum/component/simple_rotation)
 	armrest = GetArmrest()
 	armrest.layer = ABOVE_MOB_LAYER
@@ -599,8 +601,13 @@
 		span_notice("[user] sits down on [src]."),
 		span_boldnotice("You sit down onto [src]."),
 	)
+	var/had_xray = FALSE //tracking our xray, don't want to make another TRAIT type
 	if(IS_BLOODSUCKER(user))
 		RegisterSignal(user, COMSIG_MOB_SAY, PROC_REF(handle_speech))
+		if(brujahthrone)
+			ADD_TRAIT(user, TRAIT_XRAY_VISION, src)
+			if(owner.client?.view_size < 15)
+				owner.client?.view_size.setTo(15)
 	else
 		unbuckle_mob(user)
 		user.Paralyze(10 SECONDS)
@@ -616,6 +623,10 @@
 	src.visible_message(span_danger("[user] unbuckles themselves from [src]."))
 	if(IS_BLOODSUCKER(user))
 		UnregisterSignal(user, COMSIG_MOB_SAY)
+		if(brujahthrone)
+			REMOVE_TRAIT(user, TRAIT_XRAY_VISION, src)
+			if(owner.client?.view_size < 15)
+				owner.client?.view_size.setTo(15)
 	. = ..()
 
 /obj/structure/bloodsucker/bloodthrone/post_unbuckle_mob(mob/living/target)
@@ -633,15 +644,38 @@
 	var/rendered = span_cult_large("<b>[user.real_name]:</b> [capitalize(message)]")
 	user.log_talk(message, LOG_SAY, tag = ROLE_BLOODSUCKER)
 	var/datum/antagonist/bloodsucker/bloodsuckerdatum = IS_BLOODSUCKER(user)
-	for(var/datum/antagonist/ghoul/receiver as anything in bloodsuckerdatum.ghouls)
-		if(!receiver.owner.current)
-			continue
-		var/mob/receiver_mob = receiver.owner.current
-		to_chat(receiver_mob, rendered)
-	to_chat(user, rendered) // tell yourself, too.
+	if(brujahthrone == FALSE)
+		for(var/datum/antagonist/ghoul/receiver as anything in bloodsuckerdatum.ghouls)
+			if(!receiver.owner.current)
+				continue
+			var/mob/receiver_mob = receiver.owner.current
+			to_chat(receiver_mob, rendered)
 
-	for(var/mob/dead_mob in GLOB.dead_mob_list)
-		var/link = FOLLOW_LINK(dead_mob, user)
-		to_chat(dead_mob, "[link] [rendered]")
+		for(var/mob/dead_mob in GLOB.dead_mob_list)
+			var/link = FOLLOW_LINK(dead_mob, user)
+			to_chat(dead_mob, "[link] [rendered]")
+
+		speech_args[SPEECH_MESSAGE] = ""
+	else
+		var/range = thronerange
+		user.log_talk(message, LOG_SAY, tag = ROLE_BLOODSUCKER)
+		for(var/mob/living/carbon/intruder in orange(range, user))
+			if(intruder.stat != DEAD)
+				to_chat(intruder, rendered)
 
 	speech_args[SPEECH_MESSAGE] = ""
+	to_chat(user, rendered) // tell yourself, too.
+
+/obj/structure/bloodsucker/bloodthrone/brujah //no thralls, noone to talk to
+	name = "brutal throne"
+	desc = "Made of bone, metal scrap and reeking of blood, an inscription engraved with razor-sharp claws reads: 'Whatever in creation exists without my knowledge, exists without my consent'."
+	icon = 'modular_zubbers/icons/obj/structures/vamp_obj_64.dmi'
+	icon_state = "throne"
+
+	ghost_desc = "This is a Brujah clan throne, they are used to monitor the surrounding area by bloodsuckers and talk to intruders."
+	vamp_desc = "This is a Brujah clan throne, it lets you have perfect vision in a large area whenever you sit in it and project your voice to everyone inside it."
+	ghoul_desc = "This is a Brujah throne, it allows your master's rebellious kin to watch over their lair's surroundings and speak to any would-be-pray in the area."
+	hunter_desc = "This is a chair that hurts those that try to buckle themselves onto it, though the Undead have no problem latching on.\n\
+		While buckled, Monsters can use this to sense their prey, watch over the area and speak to anyone within their 'territory'."
+	brujahthrone = TRUE
+
