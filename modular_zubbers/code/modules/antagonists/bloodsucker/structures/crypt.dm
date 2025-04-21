@@ -601,7 +601,6 @@
 		span_notice("[user] sits down on [src]."),
 		span_boldnotice("You sit down onto [src]."),
 	)
-	var/had_xray = FALSE //tracking our xray, don't want to make another TRAIT type
 	if(IS_BLOODSUCKER(user))
 		RegisterSignal(user, COMSIG_MOB_SAY, PROC_REF(handle_speech))
 		if(brujahthrone)
@@ -666,12 +665,10 @@
 	speech_args[SPEECH_MESSAGE] = ""
 	to_chat(user, rendered) // tell yourself, too.
 
-/obj/structure/bloodsucker/bloodthrone/brujah //no thralls, noone to talk to
+/obj/structure/bloodsucker/bloodthrone/brutal //no thralls, noone to talk to
 	name = "brutal throne"
 	desc = "Made of bone, metal scrap and reeking of blood, an inscription engraved with razor-sharp claws reads: 'Whatever in creation exists without my knowledge, exists without my consent'."
-	icon = 'modular_zubbers/icons/obj/structures/vamp_obj_64.dmi'
-	icon_state = "throne"
-
+	icon_state = "brutalthrone"
 	ghost_desc = "This is a Brujah clan throne, they are used to monitor the surrounding area by bloodsuckers and talk to intruders."
 	vamp_desc = "This is a Brujah clan throne, it lets you have perfect vision in a large area whenever you sit in it and project your voice to everyone inside it."
 	ghoul_desc = "This is a Brujah throne, it allows your master's rebellious kin to watch over their lair's surroundings and speak to any would-be-pray in the area."
@@ -679,3 +676,5 @@
 		While buckled, Monsters can use this to sense their prey, watch over the area and speak to anyone within their 'territory'."
 	brujahthrone = TRUE
 
+/obj/structure/bloodsucker/bloodthrone/brutal/GetArmrest()
+	return mutable_appearance('modular_zubbers/icons/obj/structures/vamp_obj_64.dmi', "brutalthronearm")
