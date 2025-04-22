@@ -38,6 +38,8 @@
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/veil)
 	owner_datum.RemovePowerByPath(/datum/action/cooldown/bloodsucker/feed)
 	owner_datum.BuyPowers(/datum/action/cooldown/bloodsucker/feed/gorge, /datum/action/cooldown/bloodsucker/frenzy)
+	user.teach_crafting_recipe(/datum/crafting_recipe/brutalthrone)
+	user.balloon_alert(bloodsuckerdatum.owner.current, "new recipes learned!")
 
 /datum/bloodsucker_clan/brujah/max_ghouls()
 	return 0

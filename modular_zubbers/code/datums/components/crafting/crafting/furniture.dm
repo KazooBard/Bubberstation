@@ -82,3 +82,16 @@
 	time = 5 SECONDS
 	category = CAT_FURNITURE
 	crafting_flags = parent_type::crafting_flags | CRAFT_MUST_BE_LEARNED
+
+/datum/crafting_recipe/brutalthrone
+	name = "Blood Throne"
+	result = /obj/structure/bloodsucker/bloodthrone
+	tool_behaviors = list(TOOL_WRENCH)
+	reqs = list(
+		/obj/item/bodypart/chest = 1,
+		/obj/item/stack/sheet/iron = 5,
+		/obj/item/stack/rods = 4
+	)
+	time = 5 SECONDS
+	category = CAT_FURNITURE
+	crafting_flags = parent_type::crafting_flags | CRAFT_MUST_BE_LEARNED

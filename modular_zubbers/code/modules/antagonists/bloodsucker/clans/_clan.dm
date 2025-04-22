@@ -271,7 +271,6 @@
 		bloodsuckerdatum.owner.current.balloon_alert(bloodsuckerdatum.owner.current, "new recipes learned! Ghouling unlocked!")
 	return TRUE
 
-
 /datum/bloodsucker_clan/proc/list_available_choices(already_known = bloodsuckerdatum.powers, powers_list = bloodsuckerdatum.all_bloodsucker_powers)
 	var/list/options = list()
 	for(var/datum/action/cooldown/bloodsucker/power as anything in powers_list)
