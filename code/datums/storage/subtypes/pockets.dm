@@ -94,7 +94,7 @@
 		/obj/item/scalpel,
 		/obj/item/dnainjector,
 		/obj/item/reagent_containers/syringe,
-		/obj/item/reagent_containers/pill,
+		/obj/item/reagent_containers/applicator/pill,
 		/obj/item/reagent_containers/hypospray/medipen,
 		/obj/item/reagent_containers/dropper,
 		/obj/item/implanter,
@@ -184,6 +184,7 @@
 		/obj/item/lipstick,
 		/obj/item/flashlight/pen,
 		/obj/item/lipstick,
+		/obj/item/reagent_containers/cup/rag, //BUBBER EDIT ADDITION: A POCKET PROTECTOR CAN CARRY A RAG
 	))
 
 /datum/storage/pockets/helmet

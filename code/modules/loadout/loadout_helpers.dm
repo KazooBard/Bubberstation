@@ -29,6 +29,7 @@
 		CRASH("Invalid outfit passed to equip_outfit_and_loadout ([outfit])")
 
 	var/list/preference_list = preference_source.read_preference(/datum/preference/loadout)
+	preference_list = preference_list[preference_source.read_preference(/datum/preference/loadout_index)] // BUBBER EDIT ADDITION: Multiple loadout presets
 	var/list/loadout_datums = loadout_list_to_datums(preference_list)
 	// SKYRAT EDIT ADDITION BEGIN
 	var/obj/item/storage/briefcase/empty/travel_suitcase
@@ -74,17 +75,13 @@
 	var/list/new_contents = get_all_gear()
 	var/update = NONE
 	for(var/datum/loadout_item/item as anything in loadout_datums)
-		var/obj/item/equipped = locate(item.item_path) in new_contents
-		if(isnull(equipped))
-			continue
 		update |= item.on_equip_item(
-			equipped_item = equipped,
+			equipped_item = locate(item.item_path) in new_contents,
 			preference_source = preference_source,
 			preference_list = preference_list,
 			equipper = src,
 			visuals_only = visuals_only,
 		)
-
 	if(update)
 		update_clothing(update)
 

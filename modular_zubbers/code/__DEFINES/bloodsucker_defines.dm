@@ -32,7 +32,7 @@
 #define BRUJAH_BLOOD_VOLUME_PER_LEVEL 25
 
 /// Level up blood cost define, max_blood * this = blood cost
-#define BLOODSUCKER_LEVELUP_PERCENTAGE 0.45
+#define BLOODSUCKER_LEVELUP_PERCENTAGE 0.40
 #define BLOODSUCKER_LEVELUP_PERCENTAGE_VENTRUE BLOODSUCKER_LEVELUP_PERCENTAGE - 0.1
 // #define BLOODSUCKER_LEVELUP_PERCENTAGE_BRUJAH BLOODSUCKER_LEVELUP_PERCENTAGE - BRUJAH_BLOOD_VOLUME_PER_LEVEL // TODO figure out how to math this so it's the same cost it is for normal vamps
 
@@ -277,13 +277,13 @@
 	JOB_WARDEN, \
 	JOB_SECURITY_OFFICER, \
 	JOB_DETECTIVE, \
-) \
+)
 
 #define BLOODSUCKER_RESTRICTED_ROLES list( \
 	JOB_AI, \
 	JOB_CYBORG, \
 	JOB_CURATOR, \
-) \
+)
 
 #define BLOODSUCKER_RESTRICTED_SPECIES list( \
 	/datum/species/synthetic, \
@@ -297,4 +297,4 @@
 	/datum/species/zombie, \
 	/datum/species/mutant, \
 	/datum/species/dullahan \
-) \
+)
