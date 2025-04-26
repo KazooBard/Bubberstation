@@ -23,7 +23,7 @@
 	if(level_current >= DEFENSE_ANTI_DELIMB_LEVEL)
 		ADD_TRAIT(user, TRAIT_NODISMEMBER, BLOODSUCKER_TRAIT)
 	if(level_current >= DEFENSE_ANTI_SPRAYFLASH_LEVEL)
-		var/obj/item/organ/internal/eyes/our_eyes = user.get_organ_slot(ORGAN_SLOT_EYES)
+		var/obj/item/organ/eyes/our_eyes = user.get_organ_slot(ORGAN_SLOT_EYES)
 		our_eyes.pepperspray_protect = TRUE
 		our_eyes.flash_protect = FLASH_PROTECTION_NONE
 	if(level_current >= DEFENSE_ANTI_WOUND_LEVEL)
