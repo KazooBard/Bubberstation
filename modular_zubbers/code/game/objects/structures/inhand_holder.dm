@@ -65,34 +65,71 @@
 /obj/item/inhand_structure/on_thrown(mob/living/carbon/user, atom/target)
 	if((item_flags & ABSTRACT) || HAS_TRAIT(src, TRAIT_NODROP))
 		return
+
 	if(HAS_TRAIT(user, TRAIT_PACIFISM))
 		to_chat(user, span_notice("You set [src] down gently on the ground."))
 		release(release_direction = user.dir)
 		return
 
-	var/obj/structure/throw_structure = held_structure
-	release(release_direction = user.dir)
-	return throw_structure
+	if(held_structure)
+		src.say("Registering landed release") // Debug
+		RegisterSignal(src, COMSIG_MOVABLE_THROW_LANDED, src, "landed_release")
+	user.adjustStaminaLoss(25)
+
+/obj/item/inhand_structure/proc/bonk(mob/living/target)
+	if(target.body_position != STANDING_UP)
+		target.Stun(0.3 SECONDS) //drop weapons, etc
+		target.Knockdown(5 SECONDS)
+		target.visible_message(span_danger("[src] crashes into [target.name], flinging them back!"), \
+			span_userdanger("You feel [src] crashing into you with great force!"), \
+			span_hear("You hear a heavy thunk!"))
+		var/atom/throw_target = get_edge_target_turf(target, get_dir(src, get_step_away(target, src)))
+		target.throw_at(throw_target, 5, 2)
+		playsound(src, 'sound/effects/bang.ogg', 40)
+		release()
+
+/obj/item/inhand_structure/throw_impact(atom/hit_atom, datum/thrownthing/throwingdatum)
+	. = ..()
+	if(!QDELETED(hit_atom) && isliving(hit_atom))
+		bonk(hit_atom)
 
 /obj/item/inhand_structure/dropped()
 	..()
 	if(held_structure && isturf(loc))
 		release()
 
-/obj/item/inhand_structure/proc/release(del_on_release = TRUE, display_messages = TRUE, release_direction = SOUTH)
+/obj/item/inhand_structure/proc/release(del_on_release = TRUE, display_messages = TRUE, release_direction = SOUTH, beingthrown = FALSE)
 	if(!held_structure)
-		if(del_on_release && !destroying)
+		if(del_on_release)
 			qdel(src)
 		return FALSE
+	if(beingthrown)
+		src.say("Signal fired!") // Debugging: Ensure the signal is being called.
+		RegisterSignal(src, COMSIG_MOVABLE_THROW_LANDED, src, "landed_release") // Register signal to call landed_release() when the object lands
+		beingthrown = FALSE
+		return TRUE
+
+	// Object release logic
 	var/obj/structure/dropped_structure = held_structure
-	held_structure = null // stops the held mob from being release()'d twice.
+	held_structure = null // Stop holding the object
 	dropped_structure.forceMove(drop_location())
 	dropped_structure.setDir(release_direction)
 	if(display_messages)
-		dropped_structure.visible_message(span_warning("[dropped_structure] uncurls!"))
-	if(del_on_release && !destroying)
+		dropped_structure.visible_message(span_warning("[dropped_structure] falls to the ground!"))
+	if(del_on_release)
 		qdel(src)
 	return TRUE
+
+/obj/item/inhand_structure/proc/landed_release()
+	if(!held_structure)
+		return
+
+	var/obj/structure/landed_structure = held_structure
+	held_structure = null
+	landed_structure.forceMove(drop_location())
+	landed_structure.setDir(SOUTH)
+	landed_structure.visible_message(span_warning("[landed_structure] lands on the ground!"))
+
 
 /obj/item/inhand_structure/relaymove(mob/living/user, direction)
 	release()
@@ -112,7 +149,7 @@
 		release(FALSE, TRUE, TRUE)
 	return ..()
 
-/obj/item/inhand_structure/destructible/release(del_on_release = TRUE, display_messages = TRUE, release_direction = SOUTH, delete_struct = FALSE) //Honestly no clue why you'd want a deletable on drop structure, but there's no harm in making them an option for the future
+/obj/item/inhand_structure/destructible/release(del_on_release = TRUE, display_messages = TRUE, release_direction = SOUTH, delete_struct = FALSE, beingthrown = FALSE) //Honestly no clue why you'd want a deletable on drop structure, but there's no harm in making them an option for the future
 	if(delete_struct && held_structure)
 		QDEL_NULL(held_structure)
 	return ..()
