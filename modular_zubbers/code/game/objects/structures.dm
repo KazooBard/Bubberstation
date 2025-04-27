@@ -3,14 +3,14 @@
 	user.visible_message(span_warning("[user] scoops up [src]!"))
 	user.put_in_hands(holder)
 
-/obj/structure/proc/structure_try_pickup(mob/living/user, instant=FALSE)
+/obj/structure/proc/structure_try_pickup(mob/living/user, instant=FALSE, ignore_anchors=FALSE)
 	if(!ishuman(user))
 		return
 	if(!user.get_empty_held_indexes())
 		to_chat(user, span_warning("Your hands are full!"))
 		return FALSE
-	if(anchored)
-		to_chat(user, span_warning("[src] is anchored down!"))
+	if(anchored && !ignore_anchors)
+		to_chat(user, span_warning("[src] doesn't even flinch, it's bolted down tight!"))
 		return FALSE
 	if(!instant)
 		user.visible_message(span_warning("[user] starts trying to lift [src]!"), \

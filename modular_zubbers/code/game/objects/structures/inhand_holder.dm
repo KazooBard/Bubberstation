@@ -4,11 +4,18 @@
 	icon = null
 	icon_state = ""
 	w_class = WEIGHT_CLASS_BULKY
+	force = 50
+	throwforce = 35
+	item_flags = SLOWS_WHILE_IN_HAND
+	slowdown = 1.2
 	var/obj/structure/held_structure
-	var/destroying = FALSE
 	var/release_direction
+	var/hits = 0
+	var/beingthrown = FALSE
+
 
 /obj/item/inhand_structure/Initialize(mapload, obj/structure/M, worn_state, head_icon, lh_icon, rh_icon, worn_slot_flags = NONE)
+	AddComponent(/datum/component/two_handed, require_twohands=TRUE)
 	if(lh_icon)
 		lefthand_file = lh_icon
 	if(rh_icon)
@@ -16,8 +23,27 @@
 	deposit(M)
 	. = ..()
 
+/obj/item/inhand_structure/attack(mob/living/target, mob/living/user, params)
+	.=..()
+	if(HAS_TRAIT(user, TRAIT_PACIFISM))
+		to_chat(user, span_warning("You don't want to harm other living beings!"))
+		return
+	hits += 1
+	playsound(loc, 'sound/effects/grillehit.ogg', 50, TRUE)
+	var/atom/throw_target = get_edge_target_turf(target, get_dir(user, get_step_away(target, user)))
+	target.throw_at(throw_target, 5, 2)
+	user.adjustStaminaLoss(25)
+	if(hits>=3)
+		if(istype(src, /obj/structure/reagent_dispensers))
+			var/obj/structure/reagent_dispensers/tank = src
+			tank.rig_boom()
+		else
+			src.visible_message(span_warning("[src] breaks against [target]!"))
+			release(TRUE)
+	log_combat(user, target, "structure slammed", src)
+	user.changeNext_move(CLICK_CD_SLOW)
+
 /obj/item/inhand_structure/Destroy()
-	destroying = TRUE
 	if(held_structure)
 		release(FALSE)
 	return ..()
