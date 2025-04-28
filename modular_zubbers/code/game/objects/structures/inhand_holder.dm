@@ -38,7 +38,7 @@
 			var/obj/structure/reagent_dispensers/tank = src
 			tank.rig_boom()
 		else
-			src.visible_message(span_warning("[src] breaks against [target]!"))
+			visible_message(span_warning("[src] breaks against [target]!"))
 			release(TRUE)
 	log_combat(user, target, "structure slammed", src)
 	user.changeNext_move(CLICK_CD_SLOW)
@@ -72,12 +72,14 @@
 		return
 
 	if(held_structure)
-		src.say("Registering landed release") // Debug
-		RegisterSignal(src, COMSIG_MOVABLE_THROW_LANDED, src, "landed_release")
-	user.adjustStaminaLoss(25)
+		beingthrown = TRUE
+		say("Registering landed release") // Debug
+		RegisterSignal(src, COMSIG_MOVABLE_THROW_LANDED, PROC_REF(landed_release))
+		throw_at(target)
+		user.adjustStaminaLoss(25)
 
 /obj/item/inhand_structure/proc/bonk(mob/living/target)
-	if(target.body_position != STANDING_UP)
+	if(target.body_position == STANDING_UP)
 		target.Stun(0.3 SECONDS) //drop weapons, etc
 		target.Knockdown(5 SECONDS)
 		target.visible_message(span_danger("[src] crashes into [target.name], flinging them back!"), \
@@ -104,8 +106,7 @@
 			qdel(src)
 		return FALSE
 	if(beingthrown)
-		src.say("Signal fired!") // Debugging: Ensure the signal is being called.
-		RegisterSignal(src, COMSIG_MOVABLE_THROW_LANDED, src, "landed_release") // Register signal to call landed_release() when the object lands
+		say("Signal fired!") // Debugging: Ensure the signal is being called.
 		beingthrown = FALSE
 		return TRUE
 
@@ -121,14 +122,20 @@
 	return TRUE
 
 /obj/item/inhand_structure/proc/landed_release()
+	SIGNAL_HANDLER
 	if(!held_structure)
 		return
 
 	var/obj/structure/landed_structure = held_structure
-	held_structure = null
-	landed_structure.forceMove(drop_location())
-	landed_structure.setDir(SOUTH)
-	landed_structure.visible_message(span_warning("[landed_structure] lands on the ground!"))
+	if(isturf(loc))
+		var/turf/location = loc
+		held_structure = null
+		landed_structure.forceMove(location)
+		landed_structure.setDir(release_direction)
+		landed_structure.visible_message(span_warning("[landed_structure] lands on the ground!"))
+		UnregisterSignal(src, COMSIG_MOVABLE_THROW_LANDED, PROC_REF(landed_release))
+		qdel(src)
+		return TRUE
 
 
 /obj/item/inhand_structure/relaymove(mob/living/user, direction)
