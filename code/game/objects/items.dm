@@ -255,6 +255,8 @@
 	var/unique_reskin_changes_inhand = FALSE
 	/// Do we apply a click cooldown when resisting this object if it is restraining them?
 	var/resist_cooldown = CLICK_CD_BREAKOUT
+	/// Unblockables!
+	var/unblockable = FALSE
 
 /obj/item/Initialize(mapload)
 	if(attack_verb_continuous)

@@ -39,11 +39,19 @@
 	fire = 80
 	acid = 70
 
+/obj/item/claymore/blockinator
+	name = "blockinator"
+	unblockable = TRUE
+
 /obj/item/shield/Initialize(mapload)
 	. = ..()
 	AddElement(/datum/element/disarm_attack)
 
 /obj/item/shield/hit_reaction(mob/living/carbon/human/owner, atom/movable/hitby, attack_text = "the attack", final_block_chance = 0, damage = 0, attack_type = MELEE_ATTACK, damage_type = BRUTE)
+	if(attack_type == MELEE_ATTACK)
+		var/obj/item/weapon = hitby
+		if(weapon.unblockable == TRUE)
+			return FALSE
 	if(transparent && (hitby.pass_flags & PASSGLASS))
 		return FALSE
 	if(attack_type == THROWN_PROJECTILE_ATTACK)
@@ -89,7 +97,10 @@
 		penetration = bang_bang.armour_penetration
 	else if(isitem(hitby))
 		var/obj/item/weapon = hitby
-		penetration = weapon.armour_penetration
+		if(weapon.unblockable)
+			penetration = 100
+		else
+			penetration = weapon.armour_penetration
 	else if(isanimal(hitby))
 		var/mob/living/simple_animal/critter = hitby
 		penetration = critter.armour_penetration
