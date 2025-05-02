@@ -43,4 +43,6 @@
 			user_right_hand.unarmed_damage_low = user_left_hand.unarmed_damage_high
 			user_right_hand.unarmed_effectiveness += 10 //I've chosen consistency over damage here, because unlike other antags, brujah cannot fight using a different damage type
 			user_left_hand.unarmed_effectiveness += 10
-
+			var/datum/martial_art/cqc/blocking/martial_art
+			if(!locate(martial_art) in user.martial_arts)
+				martial_art.teach(user)

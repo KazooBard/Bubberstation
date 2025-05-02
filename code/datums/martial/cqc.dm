@@ -14,6 +14,8 @@
 	VAR_PRIVATE/datum/weakref/restraining_mob
 	/// Probability of successfully blocking attacks while on throw mode
 	var/block_chance = 75
+	var/has_attacks = TRUE
+	var/brujah_block_toggle = FALSE
 
 /datum/martial_art/cqc/activate_style(mob/living/new_holder)
 	. = ..()
@@ -59,7 +61,13 @@
 			span_danger("[cqc_user] blocks [attack_text] and twists [attacker]'s arm behind [attacker.p_their()] back!"),
 			span_userdanger("You block [attack_text]!"),
 		)
-		attacker.Stun(4 SECONDS)
+		if(brujah_block_toggle)
+			attacker.Stun(2.5 SECONDS)
+			var/obj/item/bodypart/owchied_arm = attacker.get_active_hand()
+			attacker.apply_damage(30, BRUTE, owchied_arm)
+			INVOKE_ASYNC(attacker, TYPE_PROC_REF(/mob, emote), "scream")
+		else
+			attacker.Stun(4 SECONDS)
 	else
 		cqc_user.visible_message(
 			span_danger("[cqc_user] blocks [attack_text]!"),
@@ -73,23 +81,24 @@
 		restraining_mob = null
 	return ..()
 
-/datum/martial_art/cqc/proc/check_streak(mob/living/attacker, mob/living/defender)
-	if(findtext(streak, SLAM_COMBO))
-		reset_streak()
-		return Slam(attacker, defender)
-	if(findtext(streak, KICK_COMBO))
-		reset_streak()
-		return Kick(attacker, defender)
-	if(findtext(streak, RESTRAIN_COMBO))
-		reset_streak()
-		return Restrain(attacker, defender)
-	if(findtext(streak, PRESSURE_COMBO))
-		reset_streak()
-		return Pressure(attacker, defender)
-	if(findtext(streak, CONSECUTIVE_COMBO))
-		reset_streak()
-		return Consecutive(attacker, defender)
-	return FALSE
+/datum/martial_art/cqc/proc/check_streak(mob/living/attacker, mob/living/defender, has_attacks)
+	if(has_attacks)
+		if(findtext(streak, SLAM_COMBO))
+			reset_streak()
+			return Slam(attacker, defender)
+		if(findtext(streak, KICK_COMBO))
+			reset_streak()
+			return Kick(attacker, defender)
+		if(findtext(streak, RESTRAIN_COMBO))
+			reset_streak()
+			return Restrain(attacker, defender)
+		if(findtext(streak, PRESSURE_COMBO))
+			reset_streak()
+			return Pressure(attacker, defender)
+		if(findtext(streak, CONSECUTIVE_COMBO))
+			reset_streak()
+			return Consecutive(attacker, defender)
+		return FALSE
 
 /datum/martial_art/cqc/proc/Slam(mob/living/attacker, mob/living/defender)
 	if(defender.body_position != STANDING_UP)
@@ -406,6 +415,13 @@
 	if(!is_type_in_list(get_area(martial_artist), kitchen_areas))
 		return FALSE
 	return ..()
+
+/datum/martial_art/cqc/blocking
+	name = "Just the Block"
+	block_chance = 100 // Retain the block chance from the parent
+	has_attacks = FALSE
+	brujah_block_toggle = TRUE
+
 
 #undef SLAM_COMBO
 #undef KICK_COMBO
