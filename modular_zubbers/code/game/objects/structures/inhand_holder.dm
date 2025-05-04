@@ -15,7 +15,7 @@
 
 
 /obj/item/inhand_structure/Initialize(mapload, obj/structure/M, worn_state, head_icon, lh_icon, rh_icon, worn_slot_flags = NONE)
-	AddComponent(/datum/component/two_handed, require_twohands=TRUE)
+	AddComponent(/datum/component/two_handed, require_twohands=TRUE, TRAIT_UNCATCHABLE)
 	if(lh_icon)
 		lefthand_file = lh_icon
 	if(rh_icon)
