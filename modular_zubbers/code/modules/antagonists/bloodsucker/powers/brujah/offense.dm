@@ -61,20 +61,18 @@
 			if(!locate(martial_art) in user.martial_arts)
 				martial_art.teach(user)
 
-/datum/bloodsucker_upgrade/offense/proc/knockback(/mob/living/carbon/user, atom/attack_target, proximity, modifiers)
-	SIGNAL_HANDLER
-
+/datum/bloodsucker_upgrade/offense/knockback(/mob/living/carbon/user, atom/attack_target, proximity, modifiers)
 	var/mob/living/carbon/human/ouruser = user
+	
 	if(!proximity || !isliving(attack_target))
 		return
-
 	if(ouruser.combat_mod)
 		if(HAS_TRAIT(ouruser, TRAIT_PACIFISM))
 			return
 		else
 			var/mob/living/our_target = attack_target
 			if(!our_target.pulledby && !our_target.pulledby.grab_state >= GRAB_AGGRESSIVE)
-				our_target.throw_at(get_edge_target_turf(our_target, dir), range = rand(1, 2), speed = 7, thrower = src, gentle = TRUE, force = 5)
+				our_target.throw_at(get_edge_target_turf(our_target, our_target.dir), range = rand(1, 2), speed = 7, thrower = src, gentle = TRUE, force = 5)
 				to_chat(our_target, "[ouruser]'s punches land with inhuman strength!")
 				to_chat(user, "Your punch knocks back [our_target]!")
 
