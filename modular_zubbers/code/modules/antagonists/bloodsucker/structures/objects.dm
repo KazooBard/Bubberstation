@@ -355,3 +355,34 @@
 		. += span_notice("This [src.name] will do for your purposes...")
 	else
 		. += span_notice("This [src.name] is of lesser quality, it won't do...")
+
+/// -----------------/// Look at me I can do cool separators too
+///  W E A P O N S   ///
+/// ---------------- ///
+
+/obj/item/melee/bloodsucker
+	name = "Blood-forged coder-complainer"
+	desc = "Cold and lifeless like the coder behind this when you show him a screenshot with this ingame"
+	var/bloodcost //additional bloodcost to summon it
+	var/cdcost //additional cd for summoning it. Either you can spam daggers out or the spear is a straight upgrade... Which it kind of is. But it's nice to not make things useless.
+
+/obj/item/melee/bloodsucker/dagger
+	name = "Blood-forged dagger"
+	desc = "Cold and wet to the touch, this elegantly-crafted weapon looks to be made entirely from a crystalline and razor-sharp blot of blood."
+	icon_state = "hardened"
+	force = 15
+	throwforce = 10
+	armour_penetration = 10
+
+/obj/item/melee/bloodsucker/javelin
+	name = "Blood-forged Javelin"
+	desc = "Ever-shifting, it's slim and long shards protrude, longigly to meet more of it's sanguine kin. You can feel a feint heartbeat when you hold it."
+	icon_state = "hardened"
+	force = 15
+	throwforce = 10
+	armour_penetration = 10
+
+/obj/item/melee/bloodsucker/javelin/Initialize(mapload)
+	. = ..()
+	AddComponent(/datum/component/two_hand_reach, unwield_reach = 1, wield_reach = 2)
+
