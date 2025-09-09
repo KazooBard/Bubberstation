@@ -363,16 +363,73 @@
 /obj/item/melee/bloodsucker
 	name = "Blood-forged coder-complainer"
 	desc = "Cold and lifeless like the coder behind this when you show him a screenshot with this ingame"
+	throw_verb = "sends out" //pick("launches", "sends outs", "fires out", "lets loose")
 	var/bloodcost //additional bloodcost to summon it
-	var/cdcost //additional cd for summoning it. Either you can spam daggers out or the spear is a straight upgrade... Which it kind of is. But it's nice to not make things useless.
+	var/stack_amount
+
+/obj/item/melee/bloodsucker/proc/apply_bleed(mob/living/target)
+	var/datum/status_effect/stacking/hemocatalysis/our_hemo = target.has_status_effect(/datum/status_effect/stacking/hemocatalysis)
+	if(our_hemo)
+		target.say("adding stacks")
+		our_hemo.add_stacks(stack_amount)
+	else
+		target.say("applying effect")
+		target.apply_status_effect(/datum/status_effect/stacking/hemocatalysis, stack_amount)
 
 /obj/item/melee/bloodsucker/dagger
 	name = "Blood-forged dagger"
 	desc = "Cold and wet to the touch, this elegantly-crafted weapon looks to be made entirely from a crystalline and razor-sharp blot of blood."
-	icon_state = "hardened"
-	force = 15
+	icon = 'icons/obj/weapons/khopesh.dmi'
+	icon_state = "render"
+	inhand_icon_state = "cultdagger"
+	worn_icon_state = "render"
+	icon_angle = -45
+	lefthand_file = 'icons/mob/inhands/weapons/swords_lefthand.dmi'
+	righthand_file = 'icons/mob/inhands/weapons/swords_righthand.dmi'
+	inhand_x_dimension = 32
+	sharpness = SHARP_EDGED
+	force = 8
 	throwforce = 10
-	armour_penetration = 10
+	wound_bonus = -5
+	stack_amount = 2
+	attack_verb_continuous = list("attacks", "slashes", "slices", "tears", "lacerates", "rips", "dices", "rends")
+	attack_verb_simple = list("attack", "slash", "slice", "tear", "lacerate", "rip", "dice", "rend")
+
+/obj/item/melee/bloodsucker/dagger/Initialize(mapload)
+	. = ..()
+	RegisterSignal(src, COMSIG_MOVABLE_IMPACT_ZONE, PROC_REF(on_impact_zone))
+	ADD_TRAIT(src, TRAIT_UNCATCHABLE, HELD_ITEM_TRAIT)
+
+/obj/item/melee/bloodsucker/dagger/Destroy(force)
+	UnregisterSignal(src, COMSIG_MOVABLE_IMPACT_ZONE)
+	REMOVE_TRAIT(src, TRAIT_UNCATCHABLE, HELD_ITEM_TRAIT)
+	return ..()
+
+/obj/item/melee/bloodsucker/dagger/afterattack(atom/target, mob/user, list/modifiers, list/attack_modifiers)
+	if(isliving(target))
+		var/mob/living/our_target = target
+		apply_bleed(our_target)
+		bonus_damage(our_target, user)
+
+/obj/item/melee/bloodsucker/dagger/proc/bonus_damage(mob/living/target, mob/user)
+	var/datum/status_effect/stacking/hemocatalysis/our_hemo = target.has_status_effect(/datum/status_effect/stacking/hemocatalysis)
+	var/extra_damage = our_hemo.stacks
+	var/obj/item/bodypart/affecting = target.get_bodypart(user.get_random_valid_zone(user.zone_selected))
+	var/armor_block = target.run_armor_check(affecting, MELEE)
+	if(our_hemo)
+		target.apply_damage(extra_damage, BRUTE, def_zone = affecting, blocked = armor_block, sharpness = SHARP_EDGED)
+
+/obj/item/melee/bloodsucker/dagger/proc/on_impact_zone(atom/source, mob/living/hitby, zone, blocked, datum/thrownthing/throwingdatum)
+	SIGNAL_HANDLER
+
+	var/mob/living/thrower = throwingdatum?.get_thrower()
+	if(hitby != thrower)
+		INVOKE_ASYNC(src, TYPE_PROC_REF(/obj/item/melee/bloodsucker, apply_bleed), hitby)
+		new /obj/effect/temp_visual/cult/sparks(get_turf(src))
+		playsound(src, 'sound/effects/magic/summonitems_generic.ogg', 30)
+		INVOKE_ASYNC(thrower, TYPE_PROC_REF(/mob/living, put_in_hands), src)
+		to_chat(thrower, span_notice("The dagger returns to your hand!"))
+		return MOVABLE_IMPACT_ZONE_OVERRIDE
 
 /obj/item/melee/bloodsucker/javelin
 	name = "Blood-forged Javelin"
@@ -386,3 +443,4 @@
 	. = ..()
 	AddComponent(/datum/component/two_hand_reach, unwield_reach = 1, wield_reach = 2)
 
+/obj/item/melee/bloodsucker/maul

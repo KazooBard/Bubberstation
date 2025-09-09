@@ -1,6 +1,6 @@
 /datum/action/cooldown/bloodsucker/blood_weapon
 	name = "Manifest Blood Weapon"
-	desc = "Withstand egregious physical wounds and walk away from attacks that would stun, pierce, and dismember lesser beings, but will render you unable to heal."
+	desc = "Use your powers to shape your blood into weapons with various effects. You can use this ability again to dispel it."
 	active_background_icon_state = "tremere_power_on"
 	base_background_icon_state = "tremere_power_off"
 	button_icon = 'modular_zubbers/icons/mob/actions/tremere_bloodsucker.dmi'
@@ -14,7 +14,8 @@
 	purchase_flags = TREMERE_CAN_BUY
 	cooldown_time = 5 SECONDS
 	bloodcost = 30
-	var/list/availible_weapons = list()
+	constant_bloodcost = 0.2
+	var/list/available_weapons = list()
 	var/current_weapon
 	var/turning_off
 
@@ -22,21 +23,23 @@
 	. = list()
 	. += "Manifest blood weapon allows you to create powerful tools out of your own blood."
 	. += "Your arsenal of blood weapons expands as you upgrade this ability. All of them apply stacks of Hemocatalysis"
-	. += "Blood daggers are about as potent as a meat cleaver, and in addition apply hemocatalysis on throw."
+	. += "You can manifest and hold up to 1 weapon at a time."
+	. += "All weapons apply Hemokinesis."
+	. += "The Dagger flies back into your hand after a succesful throwing hit."
 	. += "The Javelin has more reach than the daggers do, absorbing blood as it flies to boost it's damage on hit."
 	. += "The Zweihander deals potent damage, it's attacks cleave - striking adjacent targets for half the damage."
 
 /datum/action/cooldown/bloodsucker/blood_weapon/proc/get_weapons_list()
 	to_chat(world, "DEBUG: level_current is [level_current]")
-	availible_weapons["Bloody Dagger"] = image(icon = 'icons/obj/weapons/spear.dmi', icon_state = "occultpoleaxe0")
+	available_weapons["Bloody Dagger"] = image(icon = 'icons/obj/weapons/spear.dmi', icon_state = "occultpoleaxe0")
 	if(level_current >= 2)
-		availible_weapons["Blood Javelin"] = image(icon = 'icons/obj/weapons/spear.dmi', icon_state = "occultjavelin0")
-		to_chat(world, "DEBUG: spells list is [availible_weapons]")
+		available_weapons["Blood Javelin"] = image(icon = 'icons/obj/weapons/spear.dmi', icon_state = "occultjavelin0")
+		to_chat(world, "DEBUG: spells list is [available_weapons]")
 	return
 
 /datum/action/cooldown/bloodsucker/blood_weapon/ActivatePower()
 	get_weapons_list()
-	var/list/spells = availible_weapons
+	var/list/spells = available_weapons
 	var/mob/living/carbon/human/caster = owner
 	to_chat(caster, "1")
 	if(!current_weapon)
@@ -68,16 +71,16 @@
 				else
 					caster.visible_message(span_warning("A [summon.name] appears at [caster]'s feet!"), \
 						span_cult_italic("A [summon.name] materializes at your feet."))
-	else
-		turning_off = TRUE
+	return TRUE
 
 /datum/action/cooldown/bloodsucker/blood_weapon/DeactivatePower(deactivate_flags)
-	if(current_weapon && turning_off)
+	if(current_weapon)
 		var/turf/flavour_spill = get_turf(current_weapon)
 		new /obj/effect/decal/cleanable/blood(flavour_spill)
 		qdel(current_weapon)
 		to_chat(owner, span_cult_italic("You dispel your blood weapon into a puddle!"))
 		turning_off = FALSE
+		current_weapon = null
 
 	return ..()
 
@@ -87,3 +90,15 @@
 	if(!IS_BLOODSUCKER(owner))
 		return FALSE
 	return TRUE
+
+
+/datum/action/cooldown/bloodsucker/blood_weapon/process(seconds_per_tick)
+	// Checks that we can keep using this.
+	. = ..()
+	if(!.)
+		return
+	if(!active)
+		return
+	if(!current_weapon)
+		DeactivatePower()
+		return
