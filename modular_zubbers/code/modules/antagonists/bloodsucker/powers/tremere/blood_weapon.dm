@@ -76,7 +76,7 @@
 /datum/action/cooldown/bloodsucker/blood_weapon/DeactivatePower(deactivate_flags)
 	if(current_weapon)
 		var/turf/flavour_spill = get_turf(current_weapon)
-		new /obj/effect/decal/cleanable/blood(flavour_spill)
+		new /obj/effect/decal/cleanable/blood/tremere(flavour_spill)
 		qdel(current_weapon)
 		to_chat(owner, span_cult_italic("You dispel your blood weapon into a puddle!"))
 		turning_off = FALSE

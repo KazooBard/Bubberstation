@@ -171,13 +171,141 @@
 		bloodsuckerdatum.AdjustBloodVolume(-bloodcost)
 	return
 
+///////////////////
+//  BLOOD BOLT  //
+/////////////////
+
 /obj/projectile/blood_bolt
 	name = "\improper Blood_bolt"
 	range = 15
-	pass_flags = PASSTABLE | PASSGLASS | PASSGRILLE | PASSCLOSEDTURF | PASSMACHINE | PASSSTRUCTURE | PASSDOORS
+	pass_flags = PASSTABLE | PASSGLASS | PASSGRILLE | PASSCLOSEDTURF | PASSMACHINE | PASSSTRUCTURE | PASSDOORS | PASSMOB
 
+/obj/projectile/blood_bolt/reduce_range()
+	..()
+	var/turf/T = get_turf(src)
+	if(is_type_on_turf(T, /obj/effect/decal/cleanable/blood/tremere))
+		new /obj/effect/temp_visual/bubblegum_hands/leftsmack(T)
+		for(var/mob/living/L in T)
+			to_chat(L, span_userdanger("Claws lunge at you from the puddle of blood!"))
+			var/limb_to_hit = L.get_bodypart(L.get_random_valid_zone(even_weights = TRUE))
+			L.apply_damage(15, BRUTE, limb_to_hit, L.run_armor_check(limb_to_hit, MELEE, null, null, armour_penetration), wound_bonus = CANT_WOUND)
 
 /obj/item/melee/tremere_hand/proc/blood_bolt(target_one, target_two, user)
+	var/obj/projectile/our_projectile
+	if(!target_one || !target_two)
+		return
+
+	our_projectile = new /obj/projectile/blood_bolt(target_one)
+	our_projectile.aim_projectile(target_two, target_one, null)
+	our_projectile.firer = user
+	our_projectile.fire()
+	charge_blood(user, 30)
+
+///////////////////
+//  DRAIN LIFE  //
+/////////////////
+/obj/item/melee/tremere_hand/proc/drain_life(target_one, target_two, user)
+
+
+/obj/effect/ebeam/blood_drain
+	name = "draining beam"
+
+/datum/status_effect/life_drain
+	id = "drain_beam"
+	tick_interval = 0.2 SECONDS
+	duration = 30 SECONDS
+	status_type = STATUS_EFFECT_REPLACE
+	alert_type = null
+	/// Stores the current beam target
+	var/mob/living/current_target
+	/// Checks the time of the last check
+	var/last_check = 0
+	/// The delay of when the beam gets checked
+	var/check_delay = 10 //Check los as often as possible, max resolution is SSobj tick though
+	/// The maximum range of the beam
+	var/max_range = 8
+	/// Wether the beam is active or not
+	var/active = FALSE
+	/// The storage for the beam
+	var/datum/beam/current_beam = null
+
+/datum/status_effect/life_drain/on_creation(mob/living/new_owner, mob/living/current_target)
+	src.current_target = current_target
+	start_beam(current_target, new_owner)
+	return ..()
+
+/datum/status_effect/life_drain/be_replaced()
+	if(active)
+		QDEL_NULL(current_beam)
+		active = FALSE
+	return ..()
+
+/datum/status_effect/life_drain/tick(seconds_between_ticks)
+	if(!current_target)
+		lose_target()
+		return
+
+	if(world.time <= last_check+check_delay)
+		return
+
+	last_check = world.time
+
+	if(!los_check(owner, current_target))
+		QDEL_NULL(current_beam)//this will give the target lost message
+		return
+
+	if(current_target)
+		on_beam_tick(current_target)
+
+/**
+ * Proc that always is called when we want to end the beam and makes sure things are cleaned up, see beam_died()
+ */
+/datum/status_effect/life_drain/proc/lose_target()
+	if(active)
+		QDEL_NULL(current_beam)
+		active = FALSE
+	if(current_target)
+		on_beam_release(current_target)
+	current_target = null
+
+/**
+ * Proc that is only called when the beam fails due to something, so not when manually ended.
+ * manual disconnection = lose_target, so it can silently end
+ * automatic disconnection = beam_died, so we can give a warning message first
+ */
+/datum/status_effect/life_drain/proc/beam_died()
+	SIGNAL_HANDLER
+	to_chat(owner, span_warning("You lose control of the beam!"))
+	lose_target()
+	duration = 0
+
+/// Used for starting the beam when a target has been acquired
+/datum/status_effect/life_drain/proc/start_beam(atom/target, mob/living/user)
+
+	if(current_target)
+		lose_target()
+	if(!isliving(target))
+		return
+
+	current_target = target
+	active = TRUE
+	current_beam = user.Beam(current_target, icon_state="cosmic_beam", time = 30 SECONDS, maxdistance = max_range, beam_type = /obj/effect/ebeam/life_drain)
+	RegisterSignal(current_beam, COMSIG_QDELETING, PROC_REF(beam_died))
+
+	SSblackbox.record_feedback("tally", "gun_fired", 1, type)
+
+/// What to process when the beam is connected to a target
+/datum/status_effect/life_drain/proc/on_beam_tick(mob/living/target, mob/living/user)
+	if(target.adjustFireLoss(3, updating_health = FALSE))
+		target.updatehealth()
+	if(IS_BLOODSUCKER(user))
+		if(user.adjustFireLoss(-3, updating_health = FALSE))
+			user.updatehealth()
+
+
+/// What to remove when the beam disconnects from a target
+/datum/status_effect/life_drain/proc/on_beam_release(mob/living/target)
+
 
 /obj/item/melee/tremere_hand/proc/boil_blood(target_one, target_two, user)
 /obj/item/melee/tremere_hand/proc/spill_blood(target_one, target_two, user)

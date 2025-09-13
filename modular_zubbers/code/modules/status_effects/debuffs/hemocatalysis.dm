@@ -14,14 +14,14 @@
 	stack_threshold = 10
 	consumed_on_threshold = FALSE
 	overlay_file = 'icons/effects/bleed.dmi'
-	underlay_file = 'icons/effects/bleed.dmi'
 	overlay_state = "bleed"
-	underlay_state = "bleed"
 
 /datum/status_effect/stacking/hemocatalysis/on_apply()
 	if(!ishuman(owner))
 		return FALSE
 	owner.apply_status_effect(/datum/status_effect/hemocatalysis_fake_bleed)
+	var/turf/owner_turf = get_turf(owner)
+	new /obj/effect/decal/cleanable/blood/tremere(owner_turf)
 	return TRUE
 
 /datum/status_effect/stacking/hemocatalysis/fadeout_effect()
