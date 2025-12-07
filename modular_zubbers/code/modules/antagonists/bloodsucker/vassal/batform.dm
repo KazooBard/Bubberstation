@@ -52,6 +52,24 @@
 	damage_coeff = list(BRUTE = 0.9, BURN = 1.25, TOX = 1, STAMINA = 1, OXY = 1)
 	attack_verb_simple = "drain blood from"
 	attack_verb_continuous = "drains blood from"
+	ai_controller = /datum/ai_controller/basic_controller/bloodsucker_bat
+
+/datum/ai_controller/basic_controller/bloodsucker_bat
+	blackboard = list(
+		BB_TARGETING_STRATEGY = /datum/targeting_strategy/basic,
+	)
+
+	ai_traits = PASSIVE_AI_FLAGS
+	ai_movement = /datum/ai_movement/basic_avoidance
+	idle_behavior = /datum/idle_behavior/idle_random_walk/less_walking
+
+	planning_subtrees = list(
+		/datum/ai_planning_subtree/escape_captivity,
+		/datum/ai_planning_subtree/random_speech/blackboard/revolutionary,
+		/datum/ai_planning_subtree/simple_find_target,
+		/datum/ai_planning_subtree/basic_melee_attack_subtree,
+	)
+
 
 /mob/living/basic/bat/bloodsucker/Initialize(mapload)
 	. = ..()
