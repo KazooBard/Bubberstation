@@ -201,22 +201,28 @@
 		return FALSE
 
 	user.say("aaaa")
-	var/obj/effect/portal/blood_gate/unlinkedgate = ourgate.resolve()
+	var/obj/effect/portal/blood_gate/unlinkedgate = ourgate?.resolve()
+
 	if(length(portals) >= max_portals)
 		portals -= portals[1]
 		qdel(portals[1])
+		user.say("lenght > max_portals")
 
 	if(isnull(unlinkedgate))
 		unlinkedgate = new(targeted_turf)
 		ourgate = WEAKREF(unlinkedgate)
 		portals += WEAKREF(unlinkedgate)
+		user.say("unlinkedgate is null")
 		return TRUE
 
 	if(!length(portals))
+		user.say("no lenght to portals")
 		return FALSE
 
-	var/obj/effect/portal/blood_gate/oursecondgate = new(targeted_turf)
+	var/obj/effect/portal/blood_gate/oursecondgate = new /obj/effect/portal/blood_gate(targeted_turf)
+	user.say("made new")
 	oursecondgate.link_portal(unlinkedgate)
+	unlinkedgate.link_portal(oursecondgate)
 	portals += WEAKREF(unlinkedgate)
 	unlinkedgate = null
 
@@ -253,41 +259,53 @@
 /obj/effect/portal/blood_gate
 	name = "Blood Gate"
 	desc = "Looks unstable. Best to test it with the clown."
-	icon = 'icons/obj/anomaly.dmi'
-	icon_state = "portal"
+	icon = 'icons/mob/simple/lavaland/nest.dmi'
+	icon_state = "nether"
 	max_integrity = 100
-	anchored = TRUE
-	density = TRUE // dense for receiving bumbs
-	layer = HIGH_OBJ_LAYER
-	light_system = COMPLEX_LIGHT
-	light_range = 3
-	light_power = 1
-	light_on = TRUE
+	density = TRUE // dense for receiving bumps
 	light_color = COLOR_RED_LIGHT
 	hardlinked = FALSE
 	uses_integrity = TRUE
 	wibbles = TRUE
 	impact_sound = SFX_BULLET_IMPACT_GLASS
 	resistance_flags = FIRE_PROOF | UNACIDABLE | ACID_PROOF
-	plane = FLOOR_PLANE
 
 
-/obj/effect/portal/blood_gate/attackby(obj/item/W, mob/user, list/modifiers, list/attack_modifiers)
-	if(user && Adjacent(user))
-		if(isliving(user))
-			var/mob/living/livinguser = user
-			if(!livinguser.combat_mode)
-				teleport(livinguser)
-				return TRUE
-			else
-				return TRUE
 
-/obj/effect/portal/blood_gate/projectile_hit(obj/projectile/hitting_projectile, def_zone, piercing_hit, blocked)
-	if (teleport(hitting_projectile, force = TRUE))
-		get_link_target_turf()
-		return BULLET_ACT_BLOCK
-	return ..()
+/obj/effect/portal/blood_gate/teleport(atom/movable/moving, force = FALSE)
+	if(!force && (!istype(moving) || iseffect(moving) || (ismecha(moving) && !mech_sized) || (!isobj(moving) && !ismob(moving)))) //Things that shouldn't teleport.
+		return
+	var/turf/real_target = get_link_target_turf()
+	if(!istype(real_target))
+		return FALSE
 
+	if(!force && (!ismecha(moving) && !isprojectile(moving) && moving.anchored && !allow_anchored))
+		return
+	var/no_effect = FALSE
+	if(last_effect == world.time || sparkless)
+		no_effect = TRUE
+	else
+		last_effect = world.time
+	var/turf/start_turf = get_turf(moving)
+	if(do_teleport(moving, real_target, innate_accuracy_penalty, no_effects = no_effect, channel = teleport_channel, forced = force_teleport))
+		if(isprojectile(moving))
+			var/obj/projectile/proj = moving
+			proj.ignore_source_check = TRUE
+		if(iscarbon(moving) && !IS_BLOODSUCKER(moving))
+			playsound(landing_turf, 'sound/effects/magic/exit_blood.ogg', 50, TRUE, -1)
+			var/new_color = src?.color
+			if(!new_color)
+				return
+
+			moving.add_atom_colour(new_color, TEMPORARY_COLOUR_PRIORITY)
+			// ...but only for a few seconds
+			addtimer(CALLBACK(moving, TYPE_PROC_REF(/atom/, remove_atom_colour), TEMPORARY_COLOUR_PRIORITY, new_color), 6 SECONDS)
+			
+		new /obj/effect/temp_visual/portal_animation(start_turf, src, moving)
+		playsound(start_turf, SFX_PORTAL_ENTER, 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
+		playsound(real_target, SFX_PORTAL_ENTER, 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
+		return TRUE
+	return FALSE
 //////////////////////////////////// BATS ////////////////////////////////////
 
 /mob/living/basic/bat/bloodsucker/temp
