@@ -279,7 +279,7 @@
 	if(!istype(real_target))
 		return FALSE
 
-	if(!force && (!ismecha(moving) && !isprojectile(moving) && moving.anchored && !allow_anchored))
+	if(!force && (!ismecha(moving) && moving.anchored && !allow_anchored))
 		return
 	var/no_effect = FALSE
 	if(last_effect == world.time || sparkless)
@@ -291,16 +291,13 @@
 		if(isprojectile(moving))
 			var/obj/projectile/proj = moving
 			proj.ignore_source_check = TRUE
-		if(iscarbon(moving) && !IS_BLOODSUCKER(moving))
-			playsound(landing_turf, 'sound/effects/magic/exit_blood.ogg', 50, TRUE, -1)
-			var/new_color = src?.color
-			if(!new_color)
-				return
+		if(iscarbon(moving))
+			var/mob/living/carbon/our_mob = moving
+			playsound(real_target, 'sound/effects/magic/exit_blood.ogg', 50, TRUE, -1)
+			if(!IS_BLOODSUCKER(our_mob))
+				our_mob.add_atom_colour(COLOR_BUBBLEGUM_RED, TEMPORARY_COLOUR_PRIORITY)
+				addtimer(CALLBACK(our_mob, TYPE_PROC_REF(/atom/, remove_atom_colour), TEMPORARY_COLOUR_PRIORITY, COLOR_BUBBLEGUM_RED), 6 SECONDS)
 
-			moving.add_atom_colour(new_color, TEMPORARY_COLOUR_PRIORITY)
-			// ...but only for a few seconds
-			addtimer(CALLBACK(moving, TYPE_PROC_REF(/atom/, remove_atom_colour), TEMPORARY_COLOUR_PRIORITY, new_color), 6 SECONDS)
-			
 		new /obj/effect/temp_visual/portal_animation(start_turf, src, moving)
 		playsound(start_turf, SFX_PORTAL_ENTER, 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
 		playsound(real_target, SFX_PORTAL_ENTER, 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
