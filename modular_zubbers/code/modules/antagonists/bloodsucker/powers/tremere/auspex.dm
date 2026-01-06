@@ -11,6 +11,7 @@
 #define AUSPEX_BLOOD_COST_PER_CHARGE 5
 #define AUSPEX_COOLDOWN_PER_CHARGE 5 SECONDS
 #define AUSPEX_BLOOD_COST_PER_TILE 5
+#define AUSPEX_BAT_LEVEL 2
 #define AUSPEX_BAT_LIFESTEAL_LEVEL 4
 #define AUSPEX_KNOCKDOWN_LEVEL 5
 #define AUSPEX_ANYWHERE_LEVEL 6
@@ -79,8 +80,10 @@
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/get_max_charges()
 	if(level_current <= 2)
 		return 2
-	else
-		return 4
+	if(level_current == 3)
+		return 3
+	if(level_current >= 4)
+		return level_current
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/update_button_status(atom/movable/screen/movable/action_button/button, force)
 	. = ..()
@@ -150,6 +153,8 @@
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/FireSecondaryTargetedPower(atom/target, params)
 	var/mob/living/user = owner
 	var/turf/targeted_turf = get_turf(target)
+	if(level_current < AUSPEX_BAT_LEVEL)
+		return
 	if(!CheckValidTarget(target))
 		return
 	if(charges <= 0)
@@ -157,11 +162,11 @@
 		return
 	if(charges > 0)
 		--charges
-		SpawnBats(user, targeted_turf)
+		spawn_bats(user, targeted_turf)
 		start_charging()
 	user.say("raghhh Im a fuken vampire raghhh")
 
-/datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/SpawnBats(mob/living/user, turf/targeted_turf)
+/datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/spawn_bats(mob/living/user, turf/targeted_turf)
 	// do_tell()
 	var/spawns = spawn_count
 	var/blood_cost = 40
@@ -170,6 +175,9 @@
 		return
 	if(owner.stat >= HARD_CRIT)
 		spawns = 1
+	var/obj/effect/portal/blood_gate/gate = locate(/obj/effect/portal/blood_gate) in targeted_turf
+	if(gate && gate.linked)
+		targeted_turf = gate.get_link_target_turf()
 	for(var/i in 1 to spawns)
 		var/mob/living/basic/bat/bloodsucker/temp/summoned_minion = new(targeted_turf)
 		// var/obj/effect/portal/teleport = new(target)
@@ -301,10 +309,7 @@
 	hard_target = new_hard_target
 	closing = TRUE
 	alpha = 150
-	addtimer(CALLBACK(src, PROC_REF(fucking_close_i_said)), 2 SECONDS)
-
-/obj/effect/portal/blood_gate/proc/fucking_close_i_said()
-	QDEL_NULL(src)
+	QDEL_IN(src, 2 SECONDS)
 
 /obj/effect/portal/blood_gate/proc/damage_gate(damage)
 	faux_integrity -= damage
