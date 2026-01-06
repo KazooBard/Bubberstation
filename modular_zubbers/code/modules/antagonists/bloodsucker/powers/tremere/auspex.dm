@@ -70,8 +70,9 @@
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/cleanup_portals()
 	for(var/datum/weakref/ref as anything in portals)
+		var/obj/effect/portal/todelete = ref?.resolve()
 		portals -= ref
-		qdel(ref)
+		addtimer(CALLBACK(src, GLOBAL_PROC_REF(qdel), todelete), 2 SECONDS)
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/get_max_charges()
 	if(level_current <= 2)
@@ -131,11 +132,12 @@
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/ActivatePower(trigger_flags)
 	. = ..()
+	if(trigger_flags & TRIGGER_SECONDARY_ACTION)
+		owner.say("removing")
+		cleanup_portals()
 	if(charges <= 0)
 		owner.balloon_alert(owner, "not enough charges!")
 		return
-	if(trigger_flags & TRIGGER_SECONDARY_ACTION)
-		cleanup_portals()
 	return TRUE
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/DeactivatePower(deactivate_flags)
@@ -144,7 +146,6 @@
 		return FALSE
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/FireSecondaryTargetedPower(atom/target, params)
-	. = ..()
 	var/mob/living/user = owner
 	var/turf/targeted_turf = get_turf(target)
 	if(!CheckValidTarget(target))
@@ -204,9 +205,9 @@
 	var/obj/effect/portal/blood_gate/unlinkedgate = ourgate?.resolve()
 
 	if(length(portals) >= max_portals)
-		portals -= portals[1]
-		qdel(portals[1])
-		user.say("lenght > max_portals")
+		var/obj/effect/portal/oldest = portals[1] // We have to qdel AND remove from list at once or we fuck it up
+		portals -= oldest
+		qdel(oldest)
 
 	if(isnull(unlinkedgate))
 		unlinkedgate = new(targeted_turf)
@@ -223,7 +224,7 @@
 	user.say("made new")
 	oursecondgate.link_portal(unlinkedgate)
 	unlinkedgate.link_portal(oursecondgate)
-	portals += WEAKREF(unlinkedgate)
+	portals += WEAKREF(oursecondgate)
 	unlinkedgate = null
 
 	return TRUE
@@ -256,6 +257,27 @@
 
 //////////////////////////////////// BLOOD GATES PART////////////////////////////
 
+/datum/status_effect/blood_gated
+	id = "blood_gated"
+	alert_type = /atom/movable/screen/alert/status_effect/freezing_blast
+	duration = 2 SECONDS
+	status_type = STATUS_EFFECT_REPLACE
+
+/atom/movable/screen/alert/status_effect/blood_gated
+	name = "Freezing Blast"
+	desc = "You've been struck by a freezing blast! Your body moves more slowly!"
+	icon_state = "frozen"
+
+/datum/status_effect/blood_gated/on_apply()
+	owner.add_movespeed_modifier(/datum/movespeed_modifier/blood_gated, update = TRUE)
+	return ..()
+
+/datum/status_effect/blood_gated/on_remove()
+	owner.remove_movespeed_modifier(/datum/movespeed_modifier/blood_gated, update = TRUE)
+
+/datum/movespeed_modifier/blood_gated
+	multiplicative_slowdown = 2
+
 /obj/effect/portal/blood_gate
 	name = "Blood Gate"
 	desc = "Looks unstable. Best to test it with the clown."
@@ -266,11 +288,40 @@
 	light_color = COLOR_RED_LIGHT
 	hardlinked = FALSE
 	uses_integrity = TRUE
+	sparkless = TRUE
 	wibbles = TRUE
 	impact_sound = SFX_BULLET_IMPACT_GLASS
 	resistance_flags = FIRE_PROOF | UNACIDABLE | ACID_PROOF
+	var/faux_integrity = 100
+	var/closing = FALSE //Is the gate shutting down?
 
 
+/obj/effect/portal/blood_gate/proc/damage_gate(damage)
+	faux_integrity -= damage
+	if(faux_integrity <= 0)
+		qdel()
+
+/obj/effect/portal/blood_gate/attackby(obj/item/W, mob/user, list/modifiers, list/attack_modifiers)
+	. = ..()
+	if(user && Adjacent(user))
+		if(isliving(user))
+			var/mob/living/living_user = user
+			if(living_user.combat_mode)
+				return FALSE
+			else
+				teleport(user)
+				return TRUE
+		else
+			return TRUE
+
+/obj/effect/portal/blood_gate/projectile_hit(obj/projectile/hitting_projectile, def_zone, piercing_hit, blocked)
+	if(!istype(hitting_projectile, /obj/projectile/magic/arcane_barrage/bloodsucker))
+		var/damage_to_gate = hitting_projectile.force
+		damage_gate(damage_to_gate)
+		return BULLET_ACT_HIT
+	else
+		teleport(hitting_projectile, force = TRUE)
+		return BULLET_ACT_BLOCK
 
 /obj/effect/portal/blood_gate/teleport(atom/movable/moving, force = FALSE)
 	if(!force && (!istype(moving) || iseffect(moving) || (ismecha(moving) && !mech_sized) || (!isobj(moving) && !ismob(moving)))) //Things that shouldn't teleport.
@@ -279,24 +330,22 @@
 	if(!istype(real_target))
 		return FALSE
 
-	if(!force && (!ismecha(moving) && moving.anchored && !allow_anchored))
+	if(!force && (!ismecha(moving) && !isprojectile(moving) && moving.anchored && !allow_anchored))
 		return
-	var/no_effect = FALSE
-	if(last_effect == world.time || sparkless)
-		no_effect = TRUE
-	else
-		last_effect = world.time
 	var/turf/start_turf = get_turf(moving)
-	if(do_teleport(moving, real_target, innate_accuracy_penalty, no_effects = no_effect, channel = teleport_channel, forced = force_teleport))
-		if(isprojectile(moving))
-			var/obj/projectile/proj = moving
-			proj.ignore_source_check = TRUE
+	if(do_teleport(moving, real_target, innate_accuracy_penalty, channel = teleport_channel, forced = force_teleport))
+		if(closing && isliving(moving))
+			var/mob/living/crunchedmob = moving
+			crunchedmob.adjustBruteLoss(30)
+			playsound(crunchedmob, 'sound/effects/magic/demon_attack1.ogg', 50, TRUE, -1)
+
 		if(iscarbon(moving))
 			var/mob/living/carbon/our_mob = moving
 			playsound(real_target, 'sound/effects/magic/exit_blood.ogg', 50, TRUE, -1)
 			if(!IS_BLOODSUCKER(our_mob))
 				our_mob.add_atom_colour(COLOR_BUBBLEGUM_RED, TEMPORARY_COLOUR_PRIORITY)
 				addtimer(CALLBACK(our_mob, TYPE_PROC_REF(/atom/, remove_atom_colour), TEMPORARY_COLOUR_PRIORITY, COLOR_BUBBLEGUM_RED), 6 SECONDS)
+				our_mob.apply_status_effect(/datum/status_effect/blood_gated)
 
 		new /obj/effect/temp_visual/portal_animation(start_turf, src, moving)
 		playsound(start_turf, SFX_PORTAL_ENTER, 50, TRUE, SHORT_RANGE_SOUND_EXTRARANGE)
@@ -309,8 +358,8 @@
 	maxHealth = 30
 	health = 30
 	basic_mob_flags = DEL_ON_DEATH
-	melee_damage_lower = 10
-	melee_damage_upper = 10
+	melee_damage_lower = 8
+	melee_damage_upper = 8
 	sharpness = SHARP_EDGED
 	var/lifespan = 30 SECONDS
 	var/new_master

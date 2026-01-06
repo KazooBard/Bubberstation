@@ -80,7 +80,7 @@
 /datum/action/cooldown/bloodsucker/targeted/proc/FireTargetedPower(atom/target, params)
 	return FALSE
 
-/// Called on right click
+/// Called on right click, calls FireTargetedPower too, so if you don't want that to happen do NOT call parent on FireSecondaryTargetedPower
 /datum/action/cooldown/bloodsucker/targeted/proc/FireSecondaryTargetedPower(atom/target, params)
 	return FireTargetedPower(target, params)
 
