@@ -34,7 +34,8 @@
 	var/decimal_charges = 0
 	var/list/portals = list()
 	var/max_portals = 2
-	var/datum/weakref/ourgate
+	var/datum/weakref/first_gate
+	var/datum/weakref/second_gate
 	COOLDOWN_DECLARE(auspex_recharge)
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/start_charging()
@@ -70,9 +71,10 @@
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/cleanup_portals()
 	for(var/datum/weakref/ref as anything in portals)
-		var/obj/effect/portal/todelete = ref?.resolve()
+		var/obj/effect/portal/blood_gate/todelete = ref?.resolve()
+		todelete.closing = TRUE
 		portals -= ref
-		addtimer(CALLBACK(src, GLOBAL_PROC_REF(qdel), todelete), 2 SECONDS)
+		addtimer(CALLBACK(todelete, GLOBAL_PROC_REF(qdel)), 2 SECONDS)
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/get_max_charges()
 	if(level_current <= 2)
@@ -189,43 +191,41 @@
 		return
 	if(charges > 0)
 		--charges
-		if(SpawnGates(user, targeted_turf))
+		if(spawn_gates(user, targeted_turf))
 			playsound(user, 'sound/effects/magic/summon_karp.ogg', 60)
 			playsound(targeted_turf, 'sound/effects/magic/summon_karp.ogg', 60)
 			PowerActivatedSuccesfully()
 		start_charging()
 	user.say("IM GATINGGGGG")
 
-/datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/SpawnGates(mob/living/user, turf/targeted_turf)
+/datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/make_single_gate(turf/target_turf, obj/effect/portal/blood_gate/other_gate)
+	var/obj/effect/portal/blood_gate/new_gate = new /obj/effect/portal/blood_gate(target_turf)
+	if(other_gate)
+		other_gate.link_portal(new_gate)
+		new_gate.link_portal(other_gate)
+	return WEAKREF(new_gate)
+
+/datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/spawn_gates(mob/living/user, turf/targeted_turf)
+	var/obj/effect/portal/blood_gate/first_gate_resolved = first_gate?.resolve()
+	var/obj/effect/portal/blood_gate/second_gate_resolved = second_gate?.resolve()
 	if(!can_pay_blood(bloodcost))
 		owner.balloon_alert(owner, "not enough blood!")
 		return FALSE
 
-	user.say("aaaa")
-	var/obj/effect/portal/blood_gate/unlinkedgate = ourgate?.resolve()
+	if(first_gate_resolved && second_gate_resolved)
+		var/obj/effect/portal/blood_gate/new_gate = new /obj/effect/portal/blood_gate(targeted_turf)
+		first_gate_resolved.close_gate()
+		first_gate = WEAKREF(second_gate_resolved)
+		second_gate = WEAKREF(new_gate)
+		second_gate_resolved.link_portal(new_gate)
+		new_gate.link_portal(second_gate_resolved)
+		return
 
-	if(length(portals) >= max_portals)
-		var/obj/effect/portal/oldest = portals[1] // We have to qdel AND remove from list at once or we fuck it up
-		portals -= oldest
-		qdel(oldest)
-
-	if(isnull(unlinkedgate))
-		unlinkedgate = new(targeted_turf)
-		ourgate = WEAKREF(unlinkedgate)
-		portals += WEAKREF(unlinkedgate)
-		user.say("unlinkedgate is null")
-		return TRUE
-
-	if(!length(portals))
-		user.say("no lenght to portals")
-		return FALSE
-
-	var/obj/effect/portal/blood_gate/oursecondgate = new /obj/effect/portal/blood_gate(targeted_turf)
-	user.say("made new")
-	oursecondgate.link_portal(unlinkedgate)
-	unlinkedgate.link_portal(oursecondgate)
-	portals += WEAKREF(oursecondgate)
-	unlinkedgate = null
+	if(!first_gate_resolved)
+		first_gate = make_single_gate(targeted_turf, second_gate_resolved)
+		return
+	if(!second_gate_resolved)
+		second_gate = make_single_gate(targeted_turf, first_gate_resolved)
 
 	return TRUE
 
@@ -294,12 +294,22 @@
 	resistance_flags = FIRE_PROOF | UNACIDABLE | ACID_PROOF
 	var/faux_integrity = 100
 	var/closing = FALSE //Is the gate shutting down?
+	var/tryit = FALSE
 
+/obj/effect/portal/blood_gate/proc/close_gate()
+	var/turf/new_hard_target = get_turf(linked)
+	hard_target = new_hard_target
+	closing = TRUE
+	alpha = 150
+	addtimer(CALLBACK(src, PROC_REF(fucking_close_i_said)), 2 SECONDS)
+
+/obj/effect/portal/blood_gate/proc/fucking_close_i_said()
+	QDEL_NULL(src)
 
 /obj/effect/portal/blood_gate/proc/damage_gate(damage)
 	faux_integrity -= damage
 	if(faux_integrity <= 0)
-		qdel()
+		close_gate()
 
 /obj/effect/portal/blood_gate/attackby(obj/item/W, mob/user, list/modifiers, list/attack_modifiers)
 	. = ..()
@@ -320,8 +330,11 @@
 		damage_gate(damage_to_gate)
 		return BULLET_ACT_HIT
 	else
-		teleport(hitting_projectile, force = TRUE)
-		return BULLET_ACT_BLOCK
+		if(tryit)
+			hitting_projectile.forceMove(get_turf(linked))
+			return BULLET_ACT_FORCE_PIERCE
+		else
+			return BULLET_ACT_HIT
 
 /obj/effect/portal/blood_gate/teleport(atom/movable/moving, force = FALSE)
 	if(!force && (!istype(moving) || iseffect(moving) || (ismecha(moving) && !mech_sized) || (!isobj(moving) && !ismob(moving)))) //Things that shouldn't teleport.

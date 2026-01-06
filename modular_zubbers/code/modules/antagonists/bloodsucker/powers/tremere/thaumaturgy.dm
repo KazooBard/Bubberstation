@@ -37,6 +37,8 @@
 	var/charges = 0
 	/// How long it takes before you can shoot again
 	var/shot_cooldown = 0
+	/// Temp var for allowing blood bolt firing through bloody gates
+	var/shot_target
 	var/datum/weakref/blood_shield
 	var/obj/projectile/magic/arcane_barrage/bloodsucker/magic_9ball
 
@@ -172,6 +174,7 @@
 	user.newtonian_move(get_dir(target, user))
 	user.face_atom(target)
 	handle_shot(user, target)
+	shot_target = target
 
 	pay_cost(THAUMATURGY_BLOOD_COST_PER_CHARGE)
 	playsound(user, 'sound/effects/magic/wand_teleport.ogg', 60, TRUE)
@@ -185,6 +188,7 @@
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/handle_shot(mob/user, atom/target)
 	magic_9ball = new(get_turf(user))
 	magic_9ball.firer = user
+	magic_9ball.firer.say("hi I shot you")
 	magic_9ball.power_ref = WEAKREF(src)
 	magic_9ball.damage = get_blood_bolt_damage()
 	magic_9ball.def_zone = ran_zone(user.zone_selected, min(level_current * 10, 90))
@@ -248,6 +252,11 @@
 			person_hit.blood_volume -= THAUMATURGY_BLOOD_COST_PER_CHARGE
 			bloodsucker_power.bloodsuckerdatum_power.AdjustBloodVolume(THAUMATURGY_BLOOD_COST_PER_CHARGE)
 		return ..()
+	if(istype(target, /obj/effect/portal/blood_gate))
+		var/this_shot_target = bloodsucker_power.shot_target
+		var/our_vampire = bloodsucker_power.owner
+		bloodsucker_power.handle_shot(our_vampire, this_shot_target)
+
 	. = ..()
 
 /**
