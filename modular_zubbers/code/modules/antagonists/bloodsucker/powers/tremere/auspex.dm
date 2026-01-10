@@ -33,7 +33,6 @@
 	var/charges = 2
 	var/recharge_duration = 50
 	var/decimal_charges = 0
-	var/list/portals = list()
 	var/max_portals = 2
 	var/datum/weakref/first_gate
 	var/datum/weakref/second_gate
@@ -71,11 +70,10 @@
 	cleanup_portals()
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/cleanup_portals()
-	for(var/datum/weakref/ref as anything in portals)
-		var/obj/effect/portal/blood_gate/todelete = ref?.resolve()
-		todelete.closing = TRUE
-		portals -= ref
-		addtimer(CALLBACK(todelete, GLOBAL_PROC_REF(qdel)), 2 SECONDS)
+	var/obj/effect/portal/blood_gate/first_gate_resolved = first_gate?.resolve()
+	var/obj/effect/portal/blood_gate/second_gate_resolved = second_gate?.resolve()
+	first_gate_resolved.close_gate()
+	second_gate_resolved.close_gate()
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/get_max_charges()
 	if(level_current <= 2)
@@ -135,15 +133,11 @@
 		return FALSE
 	return TRUE
 
-/datum/action/cooldown/bloodsucker/targeted/tremere/auspex/ActivatePower(trigger_flags)
-	. = ..()
+
+/datum/action/cooldown/bloodsucker/targeted/tremere/auspex/Trigger(trigger_flags, atom/target)
 	if(trigger_flags & TRIGGER_SECONDARY_ACTION)
-		owner.say("removing")
 		cleanup_portals()
-	if(charges <= 0)
-		owner.balloon_alert(owner, "not enough charges!")
 		return
-	return TRUE
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/DeactivatePower(deactivate_flags)
 	. = ..()
@@ -164,7 +158,6 @@
 		--charges
 		spawn_bats(user, targeted_turf)
 		start_charging()
-	user.say("raghhh Im a fuken vampire raghhh")
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/spawn_bats(mob/living/user, turf/targeted_turf)
 	// do_tell()
@@ -204,13 +197,14 @@
 			playsound(targeted_turf, 'sound/effects/magic/summon_karp.ogg', 60)
 			PowerActivatedSuccesfully()
 		start_charging()
-	user.say("IM GATINGGGGG")
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/make_single_gate(turf/target_turf, obj/effect/portal/blood_gate/other_gate)
 	var/obj/effect/portal/blood_gate/new_gate = new /obj/effect/portal/blood_gate(target_turf)
 	if(other_gate)
 		other_gate.link_portal(new_gate)
 		new_gate.link_portal(other_gate)
+		other_gate.owner = owner
+		new_gate.owner = owner
 	return WEAKREF(new_gate)
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/proc/spawn_gates(mob/living/user, turf/targeted_turf)
@@ -303,6 +297,7 @@
 	var/faux_integrity = 100
 	var/closing = FALSE //Is the gate shutting down?
 	var/tryit = FALSE
+	var/mob/living/owner
 
 /obj/effect/portal/blood_gate/proc/close_gate()
 	var/turf/new_hard_target = get_turf(linked)
@@ -329,10 +324,31 @@
 		else
 			return TRUE
 
+/obj/effect/portal/blood_gate/proc/dupe_shot(var/our_angle, var/obj/effect/portal/blood_gate/other_gate, var/obj/projectile/magic/arcane_barrage/bloodsucker/original_bolt)
+	var/turf/spawn_turf = get_turf(other_gate)
+	var/turf/exit_turf = get_step(spawn_turf, angle2dir(our_angle))
+	if(!exit_turf || exit_turf.is_blocked_turf_ignore_climbable())
+		exit_turf = spawn_turf // fallback
+	var/obj/projectile/magic/arcane_barrage/bloodsucker/duped_bolt = new(exit_turf)
+	duped_bolt.set_angle(our_angle)
+	duped_bolt.firer = owner
+
+	if(iscarbon(owner))
+		var/mob/living/carbon/carbon_owner = owner
+		for(var/datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/thaumaturgy_power in carbon_owner.actions)
+			if(thaumaturgy_power.level_current >= 5) //manual input of thaumaturgy def for stealuing blood
+				duped_bolt.damage = 40
+			else
+				duped_bolt.damage = 20
+	duped_bolt.def_zone = original_bolt.def_zone
+	// Copy other relevant properties if needed
+	INVOKE_ASYNC(duped_bolt, TYPE_PROC_REF(/obj/projectile, fire))
+
 /obj/effect/portal/blood_gate/projectile_hit(obj/projectile/hitting_projectile, def_zone, piercing_hit, blocked)
-	if(!istype(hitting_projectile, /obj/projectile/magic/arcane_barrage/bloodsucker))
-		var/damage_to_gate = hitting_projectile.force
-		damage_gate(damage_to_gate)
+	if(istype(hitting_projectile, /obj/projectile/magic/arcane_barrage/bloodsucker))
+		var/og_angle = hitting_projectile.angle
+		var/obj/effect/portal/blood_gate/other_gate = src.linked
+		dupe_shot(og_angle, other_gate, hitting_projectile)
 		return BULLET_ACT_HIT
 	else
 		if(tryit)
