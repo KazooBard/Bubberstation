@@ -13,7 +13,7 @@
 	w_class = WEIGHT_CLASS_NORMAL
 	attack_verb_continuous = list("whacks","breaches","bulldozes","flings","thwachs")
 	attack_verb_simple = list("breach","hammer","whack","slap","thwach","fling")
-	obj_flags = parent_type::obj_flags & ~CONDUCTS_ELECTRICITY
+	obj_flags = 0 //make sure it has no conducts_electricity flag
 
 	/// Delay between door hits
 	var/breaching_delay = 2 SECONDS
