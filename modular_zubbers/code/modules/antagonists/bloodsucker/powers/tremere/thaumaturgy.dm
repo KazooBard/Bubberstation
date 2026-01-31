@@ -41,6 +41,9 @@
 	var/shot_target
 	var/datum/weakref/blood_shield
 	var/obj/projectile/magic/arcane_barrage/bloodsucker/magic_9ball
+	var/delay = 1 SECONDS // Our delay for blood boil
+	var/blood_boil_duration = 2 SECONDS
+	var/blood_boil_range = 2
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/Grant()
 	charges = get_max_charges()
@@ -137,12 +140,10 @@
 	return ..(used_charges * THAUMATURGY_COOLDOWN_PER_CHARGE, override_melee_cooldown_time)
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/get_blood_bolt_damage()
-	if(level_current >= THAUMATURGY_EXTRA_DAMAGE_LEVEL)
-		return 40
-	return 20
+	return level_current * 5 + 10
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/get_max_charges()
-	return level_current * 2
+	return level_current * 2 + 2
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/get_shot_cooldown()
 	return max(1.5 - (level_current * 0.1), 0) SECONDS
@@ -155,7 +156,7 @@
 	if(next_use_time - world.time <= 0)
 		button.maptext = MAPTEXT_TINY_UNICODE(span_center("[charges]/[get_max_charges()]"))
 
-/datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/FireSecondaryTargetedPower(atom/target, params)
+/datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/FireTargetedPower(atom/target, params)
 	if(shot_cooldown > world.time)
 		return
 	if(!can_pay_blood(THAUMATURGY_BLOOD_COST_PER_CHARGE))
@@ -188,11 +189,16 @@
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/handle_shot(mob/user, atom/target)
 	magic_9ball = new(get_turf(user))
 	magic_9ball.firer = user
-	magic_9ball.firer.say("hi I shot you")
 	magic_9ball.power_ref = WEAKREF(src)
 	magic_9ball.damage = get_blood_bolt_damage()
 	magic_9ball.def_zone = ran_zone(user.zone_selected, min(level_current * 10, 90))
 	magic_9ball.aim_projectile(target, user)
+
+	// Dynamic armour penetration: no AP at level 1, +10 AP per level thereafter
+	magic_9ball.armour_penetration = max(0, (level_current - 1) * 10)
+	// Wound bonuses: base wound plus +5 per level, and exposed wound bonus +5 per level
+	magic_9ball.wound_bonus = initial(magic_9ball.wound_bonus) + (5 * level_current)
+	magic_9ball.exposed_wound_bonus = 5 * level_current
 	// autotarget if we aim at a turf
 	if(isturf(target))
 		var/list/targets = list()
@@ -204,10 +210,17 @@
 				continue
 			targets += possible_target
 		if(length(targets))
-			magic_9ball.set_homing_target(pick(targets))
+			// Only enable homing behaviour from level 3 onwards
+			if(level_current >= 3)
+				magic_9ball.set_homing_target(pick(targets))
 	else if(ismob(target))
-		magic_9ball.homing_target = target
-	magic_9ball.homing_turn_speed = min(10 * level_current, 90)
+		if(level_current >= 3)
+			magic_9ball.homing_target = target
+	// Homing turn speed only applies when homing is enabled
+	if(level_current >= 3)
+		magic_9ball.homing_turn_speed = min(10 * level_current, 90)
+	else
+		magic_9ball.homing_turn_speed = 0
 	magic_9ball.range = initial(magic_9ball.range) + level_current * 10
 	INVOKE_ASYNC(magic_9ball, TYPE_PROC_REF(/obj/projectile, fire))
 	// ditch the pointer to reduce harddels
@@ -222,11 +235,12 @@
 	icon_state = "mini_leaper"
 	damage = 1
 	wound_bonus = 20
-	armour_penetration = 30
-	speed = 0.6
+	armour_penetration = 0
+	damage_type = BRUTE
+	hitsound = 'sound/items/weapons/barragespellhit.ogg'
 	impact_effect_type = /obj/effect/temp_visual/impact_effect/red_laser
 	range = 30
-	armor_flag = LASER
+	armor_flag = BULLET
 	var/datum/weakref/power_ref
 
 /obj/projectile/magic/arcane_barrage/bloodsucker/on_hit(target, blocked = 0, pierce_hit)
@@ -259,6 +273,53 @@
 
 	. = ..()
 
+
+
+/datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/FireSecondaryTargetedPower(atom/target, params)
+	for(var/obj/effect/decal/cleanable/blood/bloodied_tile in range(blood_boil_range, target))
+		var/turf/target_turfs = get_turf(bloodied_tile)
+		new /obj/effect/temp_visual/telegraphing(target_turfs, delay)
+		addtimer(CALLBACK(src, PROC_REF(blood_boil), target_turfs), delay)
+		for(var/mob/living/L in target_turfs)
+			to_chat(L, span_userdanger("The blood underneath your feet burns you!"))
+			playsound(L, 'sound/effects/magic/exit_blood.ogg', 100, TRUE, -1)
+
+/datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/blood_boil(atom/target)
+	for(target)
+		var/turf/blood_boil_turf = target
+		if(locate(/obj/structure/blood_spike) in blood_boil_turf)
+			continue
+		new /obj/effect/temp_visual/mook_dust(blood_boil_turf)
+		var/obj/structure/blood_spike/our_spike = new /obj/structure/blood_spike(blood_boil_turf)
+		QDEL_IN(our_spike, blood_boil_duration)
+
+/obj/structure/blood_spike
+	name = "blades"
+	desc = "A sharp flurry of blades that have erupted from the ground."
+	icon_state = "thingspike"
+	density = FALSE //so ai considers it
+	anchored = TRUE
+	/// time before we fall apart
+	var/expiry_time = 10 SECONDS
+
+/obj/structure/blood_spike/Initialize(mapload)
+	. = ..()
+	var/turf/our_turf = get_turf(src)
+	var/hit_someone = FALSE
+	// for(var/mob/living/potential_target as anything in our_turf)
+	// 	hit_someone = TRUE
+	// 	var/either_leg
+	// 	if(prob(50))
+	// 		either_leg = potential_target.get_bodypart(BODY_ZONE_L_LEG)
+	// 	else
+	// 		either_leg = potential_target.get_bodypart(BODY_ZONE_R_LEG)
+	// 	potential_target.apply_damage(10, BURN, either_leg, potential_target.run_armor_check(either_leg, MELEE, null, null))
+	// if(hit_someone)
+	// 	playsound(src, 'sound/items/weapons/slice.ogg', vol = 50, vary = TRUE, pressure_affected = FALSE)
+	// else
+	// 	playsound(src, 'sound/misc/splort.ogg', vol = 25, vary = TRUE, pressure_affected = FALSE)
+
+	// QDEL_IN(src, expiry_time)
 /**
  *	# Blood Shield
  *

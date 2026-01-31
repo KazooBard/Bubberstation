@@ -272,6 +272,8 @@
 
 /datum/status_effect/blood_gated/on_apply()
 	owner.add_movespeed_modifier(/datum/movespeed_modifier/blood_gated, update = TRUE)
+	owner.add_atom_colour(COLOR_BUBBLEGUM_RED, TEMPORARY_COLOUR_PRIORITY)
+	addtimer(CALLBACK(owner, TYPE_PROC_REF(/atom/, remove_atom_colour), TEMPORARY_COLOUR_PRIORITY, COLOR_BUBBLEGUM_RED), 6 SECONDS)
 	return ..()
 
 /datum/status_effect/blood_gated/on_remove()
@@ -377,8 +379,6 @@
 			var/mob/living/carbon/our_mob = moving
 			playsound(real_target, 'sound/effects/magic/exit_blood.ogg', 50, TRUE, -1)
 			if(!IS_BLOODSUCKER(our_mob))
-				our_mob.add_atom_colour(COLOR_BUBBLEGUM_RED, TEMPORARY_COLOUR_PRIORITY)
-				addtimer(CALLBACK(our_mob, TYPE_PROC_REF(/atom/, remove_atom_colour), TEMPORARY_COLOUR_PRIORITY, COLOR_BUBBLEGUM_RED), 6 SECONDS)
 				our_mob.apply_status_effect(/datum/status_effect/blood_gated)
 
 		new /obj/effect/temp_visual/portal_animation(start_turf, src, moving)
