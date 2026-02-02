@@ -1,8 +1,6 @@
 /datum/antagonist/brother
 	var/datum/action/bb/comms/comms_action
 	var/datum/action/bb/gear/gear_action
-	VAR_PRIVATE/datum/team/brother_team/team
-
 
 
 
@@ -45,19 +43,6 @@
 	data["objectives"] = get_objectives()
 	return data
 
-/datum/antagonist/brother/antag_token(datum/mind/hosts_mind, mob/spender)
-	var/datum/team/brother_team/team = new
-	if(isobserver(spender))
-		var/mob/living/carbon/human/new_mob = spender.change_mob_type(/mob/living/carbon/human, delete_old_mob = TRUE)
-		new_mob.equipOutfit(/datum/outfit/job/assistant)
-		var/datum/mind/new_mind = new_mob.mind
-		team.add_member(new_mind)
-		team.forge_brother_objectives()
-		new_mind.add_antag_datum(/datum/antagonist/brother, team)
-	else
-		team.add_member(hosts_mind)
-		team.forge_brother_objectives()
-		hosts_mind.add_antag_datum(/datum/antagonist/brother, team)
 
 /datum/antagonist/brother/proc/communicate(message)
 	if(!istext(message) || !length(message) || QDELETED(owner) || QDELETED(team))
@@ -70,7 +55,6 @@
 			continue
 		if(brother != owner)
 			target.balloon_alert(target, "you hear a voice")
-			target.playsound_local(get_turf(target), 'goon/sounds/misc/talk/radio_ai.ogg', vol = 25, vary = FALSE, pressure_affected = FALSE, use_reverb = FALSE)
 		to_chat(target, formatted_msg, type = MESSAGE_TYPE_RADIO, avoid_highlighting = (brother == owner))
 	for(var/dead_mob in GLOB.dead_mob_list)
 		var/link = FOLLOW_LINK(dead_mob, owner.current)
