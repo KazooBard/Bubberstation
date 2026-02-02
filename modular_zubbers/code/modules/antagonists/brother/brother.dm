@@ -1,6 +1,7 @@
 /datum/antagonist/brother
 	var/datum/action/bb/comms/comms_action
 	var/datum/action/bb/gear/gear_action
+	var/datum/action/bb/convert/convert_action
 
 
 
