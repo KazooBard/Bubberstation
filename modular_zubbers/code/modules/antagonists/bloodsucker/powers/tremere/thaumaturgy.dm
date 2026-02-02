@@ -146,7 +146,7 @@
 	return level_current * 2 + 2
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/get_shot_cooldown()
-	return max(1.5 - (level_current * 0.1), 0) SECONDS
+	return 1.5
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/get_shot_range()
 	return initial(magic_9ball.range) + level_current * 10
@@ -233,8 +233,9 @@
 /obj/projectile/magic/arcane_barrage/bloodsucker
 	name = "blood bolt"
 	icon_state = "mini_leaper"
+	sharpness = SHARP_POINTY
 	damage = 1
-	wound_bonus = 20
+	wound_bonus = 0
 	armour_penetration = 0
 	damage_type = BRUTE
 	hitsound = 'sound/items/weapons/barragespellhit.ogg'
@@ -276,7 +277,7 @@
 
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/FireSecondaryTargetedPower(atom/target, params)
-	for(var/obj/effect/decal/cleanable/blood/bloodied_tile in range(blood_boil_range, target))
+	for(var/obj/effect/decal/cleanable/blood/bloodied_tile in range(blood_boil_range, get_turf(target)))
 		var/turf/target_turfs = get_turf(bloodied_tile)
 		new /obj/effect/temp_visual/telegraphing(target_turfs, delay)
 		addtimer(CALLBACK(src, PROC_REF(blood_boil), target_turfs), delay)

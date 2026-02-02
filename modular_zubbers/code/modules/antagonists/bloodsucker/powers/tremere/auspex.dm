@@ -135,6 +135,7 @@
 
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/auspex/Trigger(trigger_flags, atom/target)
+	. = ..()
 	if(trigger_flags & TRIGGER_SECONDARY_ACTION)
 		cleanup_portals()
 		return

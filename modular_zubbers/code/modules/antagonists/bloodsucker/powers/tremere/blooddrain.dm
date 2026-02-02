@@ -38,6 +38,7 @@
 	drain.fired_from = src
 	drain.power = get_drain_level()
 	drain.def_zone = ran_zone(living_owner.zone_selected)
+	drain.power = get_drain_level()
 	drain.aim_projectile(target_atom, living_owner)
 	INVOKE_ASYNC(drain, TYPE_PROC_REF(/obj/projectile, fire))
 	pay_cost()
@@ -70,14 +71,19 @@
 		// projectile fired without a firer — cancel safely instead of crashing server
 		qdel(src)
 		return
-	drain_beam = firer.Beam(src, icon = 'icons/effects/beam.dmi', icon_state = "blood", time = 10 SECONDS, maxdistance = 7)
+	drain_beam = firer.Beam(src, icon = 'icons/effects/beam.dmi', icon_state = "blood", time = 15 SECONDS, maxdistance = 7)
 	return ..()
 
 /obj/projectile/magic/blood_drain/on_hit(mob/living/target, blocked, pierce_hit)
 	. = ..()
 	if(!isliving(target))
 		return
-	target.apply_status_effect(/datum/status_effect/blood_drain, firer, fired_from)
+	if(power <= 1)
+		target.apply_status_effect(/datum/status_effect/blood_drain, firer, fired_from)
+	if(power == 2)
+		target.apply_status_effect(/datum/status_effect/blood_drain/two, firer, fired_from)
+	if(power ==3)
+		target.apply_status_effect(/datum/status_effect/blood_drain/three, firer, fired_from)
 
 /obj/projectile/magic/blood_drain/Destroy()
 	if(!QDELETED(drain_beam))
@@ -100,7 +106,17 @@
 	var/datum/action/cooldown/bloodsucker/targeted/tremere/blooddrain/spell
 	var/blood_drain = 3	 // Amount of blood drained per tick, at 0.25 this is 12 blood per second
 	var/stamina_drain = 7
+	var/drain_power = 1
 	var/datum/antagonist/bloodsucker/our_sucker // need this to add blood
+
+
+/datum/status_effect/blood_drain/two
+	id = "blood_drain_2"
+	drain_power = 2
+
+/datum/status_effect/blood_drain/three
+	id = "blood_drain_3"
+	drain_power = 3
 
 /datum/status_effect/blood_drain/on_creation(mob/living/new_owner, mob/living/firer, fired_from, duration_override)
 	if(isnull(firer) || isnull(fired_from) || !iscarbon(firer) || !iscarbon(new_owner))
@@ -113,7 +129,7 @@
 	if(!isnull(spell))
 		spell.active_effects += src
 		spell.active_beams += 1
-	drain_beam = bloodsucker.Beam(new_owner, icon = 'icons/effects/beam.dmi', icon_state = "g_beam", time = 22 SECONDS, maxdistance = 7, beam_color = COLOR_RED)
+	drain_beam = bloodsucker.Beam(new_owner, icon = 'icons/effects/beam.dmi', icon_state = "blood", time = 22 SECONDS, maxdistance = 7, beam_color = COLOR_RED)
 	RegisterSignal(drain_beam, COMSIG_QDELETING, PROC_REF(end_drain))
 	new_owner.visible_message(span_boldwarning("[bloodsucker] begins draining the life force from [new_owner]!"), span_boldwarning("[bloodsucker] is draining your life force! You need to get away from them to stop it!"))
 	. = ..()
@@ -137,7 +153,7 @@
 
 	if(HAS_TRAIT(owner, TRAIT_INCAPACITATED) || owner.stat)
 		//If the victim is incapacitated, drain their blood
-		owner.blood_volume -= blood_drain
+		owner.blood_volume -= blood_drain * drain_power
 	else
 		//If they aren't incapacitated yet, drain only their stamina
 		owner.apply_damage(stamina_drain, STAMINA)
@@ -147,9 +163,9 @@
 		owner.visible_message(span_boldwarning("[bloodsucker] absorbs blood from [owner]!"), span_boldwarning("It BURNS!"))
 
 	//bloodsucker heals at a steady rate over the duration of the spell regardless of the victim's state
-	bloodsucker.heal_overall_damage(brute = 0.5, burn = 0.5, stamina = 5)
+	bloodsucker.heal_overall_damage(brute = 0.5 * drain_power, burn = 0.5 * drain_power, stamina = 5 * drain_power)
 
-	our_sucker.AdjustBloodVolume(blood_drain)
+	our_sucker.AdjustBloodVolume(blood_drain * drain_power)
 	our_sucker.total_blood_drank += blood_drain// bloodsuckers get double the blood drained because of balance
 	drain_beam.redrawing()
 
