@@ -50,11 +50,18 @@
 		return TRUE
 
 	if (living_target == lastchecked)
-		weflashedem(living_target)
-		clicker.balloon_alert("you convert em")
+		if(!(ROLE_BROTHER in living_target.client.prefs.be_special))
+			return TRUE
+		else
+			weflashedem(living_target)
+			clicker.balloon_alert("you convert em")
 	else
 		lastchecked = living_target
-		clicker.balloon_alert("you check them")
+		if(!(ROLE_BROTHER in living_target.client.prefs.be_special))
+			clicker.balloon_alert("not eligible for conversion")
+		else
+			clicker.balloon_alert("eligible for conversion")
+
 	unset_ranged_ability(owner) // because we sleep
 
 	weflashedem(living_target)

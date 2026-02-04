@@ -15,6 +15,7 @@
 	var/mob/living/target = mob_override || owner.current
 	comms_action.Grant(target)
 	gear_action?.Grant(target)
+	convert.Grant(target)
 	add_team_hud(target, /datum/antagonist/brother, REF(team))
 
 /datum/antagonist/brother/remove_innate_effects(mob/living/mob_override)
