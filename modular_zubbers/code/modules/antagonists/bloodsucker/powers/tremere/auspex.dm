@@ -335,6 +335,7 @@
 	var/obj/projectile/magic/arcane_barrage/bloodsucker/duped_bolt = new(exit_turf)
 	duped_bolt.set_angle(our_angle)
 	duped_bolt.firer = owner
+	duped_bolt.damage = (original_bolt.damage * 1.5)
 
 	if(iscarbon(owner))
 		var/mob/living/carbon/carbon_owner = owner
