@@ -37,6 +37,10 @@
 	var/charges = 0
 	/// How long it takes before you can shoot again
 	var/shot_cooldown = 0
+	/// How long between automatic charge recharges
+	var/recharge_duration = THAUMATURGY_COOLDOWN_PER_CHARGE
+	var/decimal_charges = 0
+	COOLDOWN_DECLARE(thaumaturgy_recharge)
 	/// Temp var for allowing blood bolt firing through bloody gates
 	var/shot_target
 	var/datum/weakref/blood_shield
@@ -48,6 +52,17 @@
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/Grant()
 	charges = get_max_charges()
 	. = ..()
+
+/datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/start_charging()
+	if(charges < get_max_charges())
+		addtimer(CALLBACK(src, PROC_REF(recharge)), recharge_duration)
+
+/datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/proc/recharge()
+	charges = min(charges + 1, get_max_charges())
+	owner.balloon_alert(owner, "regained charge")
+	playsound(src, 'sound/effects/magic/enter_blood.ogg', 10, TRUE, extrarange = SILENCED_SOUND_EXTRARANGE, falloff_distance = 0)
+	if(charges < get_max_charges())
+		start_charging()
 
 /datum/action/cooldown/bloodsucker/targeted/tremere/thaumaturgy/Remove()
 	. = ..()
@@ -180,6 +195,7 @@
 	pay_cost(THAUMATURGY_BLOOD_COST_PER_CHARGE)
 	playsound(user, 'sound/effects/magic/wand_teleport.ogg', 60, TRUE)
 	charges -= 1
+	start_charging()
 	build_all_button_icons(UPDATE_BUTTON_STATUS)
 	if(charges <= 0)
 		// delay the message so it doesn't overlap with the cooldown message
