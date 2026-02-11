@@ -10,11 +10,13 @@
 /datum/action/innate/bb/convert
 	name = "Blood Bond"
 	desc = "Use once on a target to check if they're valid for conversion, use a second time to convert."
-	button_icon_state = "weapons"
+	button_icon_state = "convert"
 	check_flags = AB_CHECK_CONSCIOUS
+	click_action = TRUE
 	var/lastchecked
 	var/used = 0
 	var/power_in_use = FALSE
+	ranged_mousepointer = 'icons/effects/mouse_pointers/supplypod_pickturf.dmi'
 
 /datum/action/innate/bb/New(datum/antagonist/brother/target)
 	if(!istype(target))
@@ -23,12 +25,24 @@
 	src.team = target.get_team()
 	return ..()
 
+/datum/action/innate/bb/convert/Trigger(trigger_flags)
+	if(!..())
+		return FALSE
+
+	if (trigger_flags & TRIGGER_SECONDARY_ACTION)
+		unset_ranged_ability(owner)
+
+		return FALSE
+	return TRUE
+
 /datum/action/innate/bb/IsAvailable(feedback)
-	if(QDELETED(bond) || bond.owner != owner.mind)
+	. = ..()
+	if(!.)
+		return
+	if(length(team.members) == 2)
+		if(feedback)
+			owner.balloon_alert(owner, "no blood brothers to communicate with!")
 		return FALSE
-	if(QDELETED(team) || !(owner.mind in team.members))
-		return FALSE
-	return ..()
 
 
 /datum/action/innate/bb/convert/do_ability(mob/living/clicker, atom/clicked_on)
@@ -38,33 +52,33 @@
 
 	var/mob/living/living_target = clicked_on
 
-	if (living_target == clicker)
-		clicker.balloon_alert("you can't be your own brother!")
-		return TRUE
-	if (isnull(living_target.mind) || !GET_CLIENT(living_target))
-		living_target.balloon_alert(living_target, "[living_target.p_their()] mind is vacant!")
-		return
+	// if (living_target == clicker)
+	// 	clicker.balloon_alert(clicker, "you cant be your own brother!")
+	// 	return TRUE
+	// if (isnull(living_target.mind) || !GET_CLIENT(living_target))
+	// 	clicker.balloon_alert(clicker,  "[living_target.p_their()] mind is vacant!")
+	// 	return
 
-	if (get_dist(clicker, living_target) > 2)
-		clicker.balloon_alert("too far!")
-		return TRUE
+	// if (get_dist(clicker, living_target) > 2)
+	// 	clicker.balloon_alert(clicker, "too far!")
+	// 	return TRUE
 
 	if (living_target == lastchecked)
 		if(!(ROLE_BROTHER in living_target.client.prefs.be_special))
 			return TRUE
 		else
-			weflashedem(living_target)
-			clicker.balloon_alert("you convert em")
+			weflashedem(clicker, living_target)
+			clicker.balloon_alert(clicker, "you convert em")
 	else
 		lastchecked = living_target
 		if(!(ROLE_BROTHER in living_target.client.prefs.be_special))
-			clicker.balloon_alert("not eligible for conversion")
+			clicker.balloon_alert(clicker, "not eligible for conversion")
 		else
-			clicker.balloon_alert("eligible for conversion")
+			clicker.balloon_alert(clicker, "eligible for conversion")
 
 	unset_ranged_ability(owner) // because we sleep
 
-	weflashedem(living_target)
+	weflashedem(clicker, living_target)
 	return TRUE
 
 /datum/action/innate/bb/convert/proc/weflashedem(mob/living/source, mob/living/convert)

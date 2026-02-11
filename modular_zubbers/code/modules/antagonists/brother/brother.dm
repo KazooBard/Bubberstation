@@ -1,7 +1,7 @@
 /datum/antagonist/brother
 	var/datum/action/bb/comms/comms_action
 	var/datum/action/bb/gear/gear_action
-	var/datum/action/innate/bb/convert
+	var/datum/action/innate/bb/convert/convert_action
 
 
 
@@ -12,10 +12,12 @@
 		comms_action = new(src)
 	if(QDELETED(gear_action) && !team.summoned_gear)
 		gear_action = new(src)
+	if(QDELETED(convert_action))
+		convert_action = new(src)
 	var/mob/living/target = mob_override || owner.current
 	comms_action.Grant(target)
 	gear_action?.Grant(target)
-	convert.Grant(target)
+	convert_action.Grant(target)
 	add_team_hud(target, /datum/antagonist/brother, REF(team))
 
 /datum/antagonist/brother/remove_innate_effects(mob/living/mob_override)
@@ -24,6 +26,8 @@
 	QDEL_NULL(comms_action)
 	gear_action?.Remove(mob_override || owner.current)
 	QDEL_NULL(gear_action)
+	convert_action?.Remove(mob_override || owner.current)
+	QDEL_NULL(convert_action)
 
 
 /datum/antagonist/brother/finalize_brother()
