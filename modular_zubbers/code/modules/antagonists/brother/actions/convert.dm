@@ -49,37 +49,41 @@
 	if (!isliving(clicked_on))
 		return TRUE
 
-
 	var/mob/living/living_target = clicked_on
-	var/datum/client/my_client = GET_CLIENT(clicker)
+	var/datum/client/my_client = GET_CLIENT(clicked_on)
 
-	// if (living_target == clicker)
-	// 	clicker.balloon_alert(clicker, "you cant be your own brother!")
-	// 	return TRUE
-	// if (isnull(living_target.mind) || !GET_CLIENT(living_target))
-	// 	clicker.balloon_alert(clicker,  "[living_target.p_their()] mind is vacant!")
-	// 	return
+	if (living_target == clicker)
+		clicker.balloon_alert(clicker, "you cant be your own brother!")
+		return TRUE
 
-	// if (get_dist(clicker, living_target) > 2)
-	// 	clicker.balloon_alert(clicker, "too far!")
-	// 	return TRUE
+	if (isnull(living_target.mind) || !GET_CLIENT(living_target))
+		clicker.balloon_alert(clicker,  "[living_target.p_their()] mind is vacant!")
+		return
 
+	if (HAS_TRAIT(living_target, TRAIT_UNCONVERTABLE))
+		clicker.balloon_alert(clicker, "[living] is unconvertable!")
+		return
+
+	if (get_dist(clicker, living_target) > 2)
+		clicker.balloon_alert(clicker, "too far!")
+		return TRUE
+
+	var/has_bb_enabled = ROLE_BROTHER in living_target.client.prefs.be_special
 	if (living_target == lastchecked)
-		if(!(ROLE_BROTHER in living_target.client.prefs.be_special))
+		if(!(has_bb_enabled))
 			return TRUE
 		else
 			weflashedem(clicker, living_target)
 			clicker.balloon_alert(clicker, "you convert em")
+			// delete ability here
 	else
 		lastchecked = living_target
-		if(!(ROLE_BROTHER in living_target.client.prefs.be_special))
+		if(!(has_bb_enabled))
 			clicker.balloon_alert(clicker, "not eligible for conversion")
 		else
 			clicker.balloon_alert(clicker, "eligible for conversion")
 
 	unset_ranged_ability(owner) // because we sleep
-
-	weflashedem(clicker, living_target)
 	return TRUE
 
 /datum/action/innate/bb/convert/proc/weflashedem(mob/living/source, mob/living/convert)
@@ -89,7 +93,7 @@
 			convert.balloon_alert(source, "that's your target!")
 			return
 
-	if (convert.mind.has_antag_datum(/datum/antagonist/brother))
+	if (convert.mind.has_antag_datum(/datum/antagonist/brother)) //Double check JUST IN CASE
 		convert.balloon_alert(source, "[convert.p_theyre()] loyal to someone else!")
 		return
 
@@ -113,4 +117,4 @@
 		antagonist = owner, \
 	)
 	convert.balloon_alert(source, "converted")
-
+	convert.visible_message("[convert] seizes onto the ground as [source] smears their blood over their hand!")
