@@ -51,6 +51,7 @@
 
 
 	var/mob/living/living_target = clicked_on
+	var/datum/client/my_client = GET_CLIENT(clicker)
 
 	// if (living_target == clicker)
 	// 	clicker.balloon_alert(clicker, "you cant be your own brother!")
