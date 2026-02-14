@@ -50,35 +50,36 @@
 		return TRUE
 
 	var/mob/living/living_target = clicked_on
-	var/datum/client/my_client = GET_CLIENT(clicked_on)
+	var/client/my_client = GET_CLIENT(living_target)
 
 	if (living_target == clicker)
 		clicker.balloon_alert(clicker, "you cant be your own brother!")
 		return TRUE
 
-	if (isnull(living_target.mind) || !GET_CLIENT(living_target))
+	if (isnull(living_target.mind) || !my_client)
 		clicker.balloon_alert(clicker,  "[living_target.p_their()] mind is vacant!")
 		return
 
 	if (HAS_TRAIT(living_target, TRAIT_UNCONVERTABLE))
-		clicker.balloon_alert(clicker, "[livin_target] is unconvertable!")
+		clicker.balloon_alert(clicker, "[living_target] is unconvertable!")
 		return
 
 	if (get_dist(clicker, living_target) > 2)
 		clicker.balloon_alert(clicker, "too far!")
 		return TRUE
 
-	var/has_bb_enabled = if(ROLE_BROTHER in living_target.client.prefs.be_special)
 	if (living_target == lastchecked)
-		if(!(has_bb_enabled))
+		if(!(ROLE_BROTHER in my_client.prefs.be_special))
+			clicker.balloon_alert(clicker, "not eligible for conversion")
 			return TRUE
 		else
 			weflashedem(clicker, living_target)
-			clicker.balloon_alert(clicker, "you convert em")
+			clicker.balloon_alert(clicker, "you convert [living_target.name]")
+			Remove()
 			// delete ability here
 	else
 		lastchecked = living_target
-		if(!(has_bb_enabled))
+		if(!(ROLE_BROTHER in my_client.prefs.be_special))
 			clicker.balloon_alert(clicker, "not eligible for conversion")
 		else
 			clicker.balloon_alert(clicker, "eligible for conversion")
