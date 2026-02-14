@@ -61,14 +61,14 @@
 		return
 
 	if (HAS_TRAIT(living_target, TRAIT_UNCONVERTABLE))
-		clicker.balloon_alert(clicker, "[living] is unconvertable!")
+		clicker.balloon_alert(clicker, "[livin_target] is unconvertable!")
 		return
 
 	if (get_dist(clicker, living_target) > 2)
 		clicker.balloon_alert(clicker, "too far!")
 		return TRUE
 
-	var/has_bb_enabled = ROLE_BROTHER in living_target.client.prefs.be_special
+	var/has_bb_enabled = if(ROLE_BROTHER in living_target.client.prefs.be_special)
 	if (living_target == lastchecked)
 		if(!(has_bb_enabled))
 			return TRUE
