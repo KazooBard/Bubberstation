@@ -12,6 +12,6 @@
 #define MARTIALART_WRESTLING "wrestling"
 #define MARTIALART_JUNGLEARTS "jungle arts"
 #define MARTIALART_SPIDERSBITE "spider's bite"
-
+#define MARTIALART_GYMNASTICS "gymnastics" //BUBBERSTATION ADDITION: BLOOD BROTHERS GYMNASTICS
 /// The number of hits required to crit a target
 #define HITS_TO_CRIT(damage) round(100 / (damage), 0.1)

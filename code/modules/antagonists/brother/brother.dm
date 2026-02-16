@@ -27,21 +27,21 @@
 /datum/antagonist/brother/on_gain()
 	objectives += team.objectives
 	finalize_brother()
+	// BUBBER EDIT START: NO FLASHES
+	// if (team.brothers_left <= 0)
+	// 	return ..()
 
-	if (team.brothers_left <= 0)
-		return ..()
+	// var/mob/living/carbon/carbon_owner = owner.current
+	// if (!istype(carbon_owner))
+	// 	return ..()
 
-	var/mob/living/carbon/carbon_owner = owner.current
-	if (!istype(carbon_owner))
-		return ..()
+	// grant_conversion_skills()
+	// carbon_owner.equip_conspicuous_item(new /obj/item/assembly/flash)
 
-	grant_conversion_skills()
-	carbon_owner.equip_conspicuous_item(new /obj/item/assembly/flash)
-
-	var/is_first_brother = team.members.len == 1
-	if (!is_first_brother)
-		to_chat(carbon_owner, span_boldwarning("The Syndicate have higher expectations from you than others. They have granted you an extra flash to convert one other person."))
-
+	// var/is_first_brother = team.members.len == 1
+	// if (!is_first_brother)
+	// 	to_chat(carbon_owner, span_boldwarning("The Syndicate have higher expectations from you than others. They have granted you an extra flash to convert one other person."))
+	// BUBBER EDIT END
 	return ..()
 
 /datum/antagonist/brother/on_removal()

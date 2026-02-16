@@ -24,3 +24,7 @@
 
 /// If true, the saddled mob can have someone clickdragged onto them to be ridden.
 #define TRAIT_SADDLED "trait_saddled"
+
+// Blood brother rework traits
+#define TRAIT_FAST_PIGGYBACK "trait_fast_piggyback"
+#define GYMNASTICS_TRAIT "gymnastics"

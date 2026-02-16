@@ -211,8 +211,8 @@
 	. = ..()
 	var/mob/living/carbon/human/human_parent = parent
 	//human_parent.add_movespeed_modifier(/datum/movespeed_modifier/human_carry) // BUBBER EDIT REMOVAL
-	// BUBBER EDIT ADDITION START - Taur saddles
-	if (!(ride_check_flags & RIDING_TAUR))
+	// BUBBER EDIT ADDITION START - Taur saddles [+ blood brother piggyback book compatability]
+	if (!(ride_check_flags & RIDING_TAUR) || HAS_TRAIT(parent, TRAIT_FAST_PIGGYBACK))
 		human_parent.add_movespeed_modifier(/datum/movespeed_modifier/human_carry)
 	// BUBBER EDIT ADDITION END
 

@@ -4,7 +4,6 @@
 	var/datum/action/innate/bb/convert/convert_action
 
 
-
 // Apply team-specific antag HUD.
 /datum/antagonist/brother/apply_innate_effects(mob/living/mob_override)
 	. = ..()

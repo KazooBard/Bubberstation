@@ -41,7 +41,7 @@
 		return
 	if(length(team.members) == 2)
 		if(feedback)
-			owner.balloon_alert(owner, "no blood brothers to communicate with!")
+			owner.balloon_alert(owner, "you already have a blood brother!")
 		return FALSE
 
 
@@ -75,7 +75,7 @@
 		else
 			weflashedem(clicker, living_target)
 			clicker.balloon_alert(clicker, "you convert [living_target.name]")
-			Remove()
+			qdel(src)
 			// delete ability here
 	else
 		lastchecked = living_target
@@ -118,4 +118,5 @@
 		antagonist = owner, \
 	)
 	convert.balloon_alert(source, "converted")
-	convert.visible_message("[convert] seizes onto the ground as [source] smears their blood over their hand!")
+	convert.visible_message("[convert] seizes onto the ground as [source] smears their own blood over their hand!")
+	convert.Paralyze(6 SECONDS)
