@@ -97,9 +97,10 @@
 /obj/item/hacktop
 	name = "Conspicuous Laptop"
 	desc = "Nothing good can come out of this laptop's use, surely..."
-	icon = 'icons/obj/devices/modular_laptop.dmi'
-	icon_state = "laptop"
+	icon = 'modular_zubbers/icons/obj/items_and_weapons.dmi'
+	icon_state = "overwatch_laptop"
 	var/other_pair
+	var/laptop_airlock
 	var/mode = 0
 
 /obj/item/hacktop/attack_self(mob/user, modifiers)
@@ -107,36 +108,43 @@
 	if(!other_pair)
 		balloon_alert(user, "no doorbug linked!")
 		return
-	if(!other_pair.last_checked_airlock)
+	if(!laptop_airlock)
 		balloon_alert(user, "no airlock linked through doorbug!")
 		return
-	var/obj/machinery/door/airlock/target_airlock = other_pair.last_checked_airlock
+	var/obj/machinery/door/airlock/target_airlock = laptop_airlock
 	var/dist_between = get_dist(get_turf(other_pair), get_turf(src))
 	var/to_move_till_usable = 10 - dist_between
 	if(dist_between < 9)
 		balloon_alert(user, "the doorbug's signal is causing interference, move away from it! ([to_move_till_usable] more)")
+	playsound(src, SFX_KEYBOARD_CLICKS, 10, TRUE, FALSE)
 	if(mode == 0) //open airlocks
 		if(do_after(user, 4 SECONDS, target = src))
 			if(target_airlock.density)
 				target_airlock.open()
-				continue
+				balloon_alert("you're in", user)
+				return
 			target_airlock.close(force_crush = TRUE)
-
+			balloon_alert("you're in", user)
+			return
 	if(mode == 1) //bolt airlocks
 		if(do_after(user, 1 SECONDS, target = src))
 			if(target_airlock.locked)
-				target_airlock.secure_open
-				continue
+				target_airlock.secure_open()
+				balloon_alert("you're in", user)
+				return
 			target_airlock.secure_close()
+			balloon_alert("you're in", user)
+			return
 
 	if(mode == 2) //shock airlocks
 		if(do_after(user, 2 SECONDS, target = src))
 			if(wires.is_cut(WIRE_SHOCK))
 				to_chat(user, span_warning("Can't un-electrify the airlock - The electrification wire is cut."))
-			else if(isElectrified())
-				set_electrified(MACHINE_NOT_ELECTRIFIED)
-			else if(!isElectrified())
-				set_electrified(MACHINE_ELECTRIFIED_PERMANENT)
+			else if(target_airlock.isElectrified())
+				target_airlock.set_electrified(MACHINE_NOT_ELECTRIFIED)
+			else if(!target_airlock.isElectrified())
+				target_airlock.set_electrified(MACHINE_ELECTRIFIED_PERMANENT)
+			balloon_alert("you're in", user)
 
 /obj/item/hacktop/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
 	. = ..()
@@ -166,22 +174,24 @@
 /obj/item/doorbug
 	name = "Conspicuous Tool"
 	desc = "A suspicious widget, cobbled together from various materials. How odd..."
-	icon =
-	icon_state =
-	var/other_pair
+	icon = 'modular_zubbers/icons/obj/items_and_weapons.dmi'
+	icon_state = "doorbug"
+	var/obj/item/hacktop/other_pair
 	var/last_checked_airlock
 
 /obj/item/doorbug/interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
-	. = ..()
 	if(istype(interacting_with, /obj/machinery/door/airlock))
 		var/obj/machinery/door/airlock/our_airlock = interacting_with
 		last_checked_airlock = our_airlock
-
+		src.other_pair.laptop_airlock = our_airlock
+		balloon_alert("[our_airlock.name] connected to hacktop", user)
+		playsound(src, SFX_KEYBOARD_CLICKS, 10, TRUE, FALSE)
+	. = ..()
+	
 /obj/item/storage/box/syndie_kit/overwatch/PopulateContents()
 	new	/obj/item/computer_disk/syndicate(src)
 	var/obj/item/hacktop/a = new(src)
 	var/obj/item/doorbug/b = new(src)
-
-	A.other_pair = B
-	B.other_pair = A
+	a.other_pair = a
+	b.other_pair = b
 
