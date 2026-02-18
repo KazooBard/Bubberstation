@@ -24,7 +24,6 @@
 		quickly tossing your partner, acrobatic pickups and the lifting technique to move freely when grabbing others!"
 
 	greet = span_sciradio("You've learned advanced gymnastical routines, allowing you to quickly carry your partner as well as grab them twice as fast any non-proffessional would!")
-	icon = 'icons/obj/scrolls.dmi'
 	icon_state = "cqcmanual"
 	remarks = list(
 		"Hold hands... Leg on knee.. And up I go, this looks managable...",
@@ -63,11 +62,15 @@
 	. = ..()
 	new_holder.add_traits(gymnastics_traits, GYMNASTICS_TRAIT)
 	new_holder.add_movespeed_mod_immunities("gymnastics", /datum/movespeed_modifier/grab_slowdown)
+	new_holder.add_movespeed_mod_immunities("gymnastics", /datum/movespeed_modifier/grab_slowdown/aggressive)
+	new_holder.add_movespeed_mod_immunities("gymnastics", /datum/movespeed_modifier/human_carry)
 	new_holder.mind.adjust_experience(/datum/skill/athletics, (2500))
 
 /datum/martial_art/gymnastics/deactivate_style(mob/living/remove_from)
 	remove_from.remove_traits(gymnastics_traits, GYMNASTICS_TRAIT)
 	remove_from.remove_movespeed_mod_immunities("gymnastics", /datum/movespeed_modifier/grab_slowdown)
+	remove_from.remove_movespeed_mod_immunities("gymnastics", /datum/movespeed_modifier/human_carry)
+	remove_from.remove_movespeed_mod_immunities("gymnastics", /datum/movespeed_modifier/grab_slowdown/aggressive)
 	// new_holder.mind.remove_experience(/datum/skill/athletics, (-2500))
 	return ..()
 
@@ -75,10 +78,19 @@
 	if(attacker == defender)
 		return
 
-	var/old_grab_state = attacker.grab_state
-	defender.grabbedby(attacker, TRUE)
-	if(old_grab_state == GRAB_PASSIVE && locate(/datum/martial_art/gymnastics) in defender.martial_arts && attacker.combat_mode)
+	defender.say("1")
+	// defender.grabbedby(attacker, TRUE)
+	defender.say("2")
+
+	if(locate(/datum/martial_art/gymnastics) in defender.martial_arts)
+		defender.say("pop")
+	if(attacker.combat_mode)
+		defender.say("soda")
+	if((locate(/datum/martial_art/gymnastics) in defender.martial_arts) && (attacker.combat_mode))
+		defender.say("soder")
+		defender.say("3")
 		attacker.setGrabState(GRAB_AGGRESSIVE) //Instant aggressive grab if it's another gymnast
+		defender.say("4")
 		log_combat(attacker, defender, "grabbed", addition="aggressively")
 		defender.visible_message(
 			span_warning("[attacker] aggressively grabs [defender]!"),
@@ -88,6 +100,42 @@
 			attacker,
 		)
 		to_chat(attacker, span_danger("You expertly grab your fellow gymnast, [defender]!"))
+
+/datum/element/ridable/equip_buckle_inhands(mob/living/carbon/human/user, amount_required = 1, atom/movable/target_movable, riding_target_override = null)
+	var/atom/movable/AM = target_movable
+	var/amount_equipped = 0
+
+	for(var/amount_needed = amount_required, amount_needed > 0, amount_needed--)
+		var/obj/item/riding_offhand/inhand = new /obj/item/riding_offhand(user)
+		if(!riding_target_override)
+			inhand.rider = user
+		else
+			inhand.rider = riding_target_override
+		inhand.parent = AM
+		for(var/obj/item/I in user.held_items) // delete any hand items like slappers that could still totally be used to grab on
+			if((I.item_flags & HAND_ITEM))
+				qdel(I)
+
+		// this would be put_in_hands() if it didn't have the chance to sleep, since this proc gets called from a signal handler that relies on what this returns
+		var/inserted_successfully = FALSE
+		if(user.put_in_active_hand(inhand))
+			inserted_successfully = TRUE
+		else
+			var/hand = user.get_empty_held_index_for_side(LEFT_HANDS) || user.get_empty_held_index_for_side(RIGHT_HANDS)
+			if(hand && user.put_in_hand(inhand, hand))
+				inserted_successfully = TRUE
+
+		if(inserted_successfully)
+			amount_equipped++
+		else
+			qdel(inhand)
+			return FALSE
+
+	if(amount_equipped >= amount_required)
+		return TRUE
+	else
+		unequip_buckle_inhands(user, target_movable)
+		return FALSE
 
 // OVERWATCH KIT
 
@@ -103,6 +151,11 @@
 	var/laptop_airlock
 	var/mode = 0
 
+/obj/item/hacktop/examine(mob/user)
+	. = ..()
+	. += span_info("Use it in-hand to launch program.")
+	. += span_info("Right click to toggle between modes.")
+
 /obj/item/hacktop/attack_self(mob/user, modifiers)
 	. = ..()
 	if(!other_pair)
@@ -113,38 +166,42 @@
 		return
 	var/obj/machinery/door/airlock/target_airlock = laptop_airlock
 	var/dist_between = get_dist(get_turf(other_pair), get_turf(src))
-	var/to_move_till_usable = 10 - dist_between
+	var/to_move_till_usable = 9 - dist_between
 	if(dist_between < 9)
 		balloon_alert(user, "the doorbug's signal is causing interference, move away from it! ([to_move_till_usable] more)")
+		return
 	playsound(src, SFX_KEYBOARD_CLICKS, 10, TRUE, FALSE)
 	if(mode == 0) //open airlocks
-		if(do_after(user, 4 SECONDS, target = src))
+		if(do_after(user, 3 SECONDS, target = src))
 			if(target_airlock.density)
 				target_airlock.open()
-				balloon_alert("you're in", user)
+				target_airlock.unlock()
+				balloon_alert(user, "you're in")
 				return
 			target_airlock.close(force_crush = TRUE)
-			balloon_alert("you're in", user)
+			balloon_alert(user, "you're in")
 			return
+
 	if(mode == 1) //bolt airlocks
 		if(do_after(user, 1 SECONDS, target = src))
 			if(target_airlock.locked)
-				target_airlock.secure_open()
-				balloon_alert("you're in", user)
+				target_airlock.unbolt()
+				balloon_alert(user, "you're in")
 				return
-			target_airlock.secure_close()
-			balloon_alert("you're in", user)
+
+			target_airlock.bolt()
+			balloon_alert(user, "you're in")
 			return
 
 	if(mode == 2) //shock airlocks
 		if(do_after(user, 2 SECONDS, target = src))
-			if(wires.is_cut(WIRE_SHOCK))
+			if(target_airlock.wires.is_cut(WIRE_SHOCK))
 				to_chat(user, span_warning("Can't un-electrify the airlock - The electrification wire is cut."))
 			else if(target_airlock.isElectrified())
 				target_airlock.set_electrified(MACHINE_NOT_ELECTRIFIED)
 			else if(!target_airlock.isElectrified())
 				target_airlock.set_electrified(MACHINE_ELECTRIFIED_PERMANENT)
-			balloon_alert("you're in", user)
+			balloon_alert(user, "you're in")
 
 /obj/item/hacktop/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
 	. = ..()
@@ -156,7 +213,6 @@
 
 
 /obj/item/hacktop/attack_self_secondary(mob/user, modifiers)
-	. = ..()
 	mode++
 	if(mode > 2)
 		mode = 0
@@ -179,17 +235,17 @@
 	var/obj/item/hacktop/other_pair
 	var/last_checked_airlock
 
-/obj/item/doorbug/interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
+/obj/item/doorbug/ranged_interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
 	if(istype(interacting_with, /obj/machinery/door/airlock))
 		var/obj/machinery/door/airlock/our_airlock = interacting_with
 		last_checked_airlock = our_airlock
 		src.other_pair.laptop_airlock = our_airlock
 		balloon_alert("[our_airlock.name] connected to hacktop", user)
 		playsound(src, SFX_KEYBOARD_CLICKS, 10, TRUE, FALSE)
-	. = ..()
-	
+		return
+
 /obj/item/storage/box/syndie_kit/overwatch/PopulateContents()
-	new	/obj/item/computer_disk/syndicate(src)
+	new	/obj/item/computer_disk/syndicate/camera_app(src)
 	var/obj/item/hacktop/a = new(src)
 	var/obj/item/doorbug/b = new(src)
 	a.other_pair = a

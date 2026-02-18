@@ -1,4 +1,4 @@
-/datum/brother_objective/supermatter_sabotage
+/datum/objective/supermatter_sabotage
 	name = "Corrupt the supermatter crystal with a provided "
 	description = "Sabotage the supermatter with the propagandium shard. Go to %AREA% to retrieve the subversive crystal \
 		and use it on the supermatter."
@@ -8,7 +8,7 @@
 	///checker on whether we have sent the crystal yet.
 	var/sent_crystal = FALSE
 
-/datum/brother_objective/supermatter_sabotage/can_generate_objective(generating_for, list/possible_duplicates)
+/datum/objective/supermatter_sabotage/can_generate_objective(generating_for, list/possible_duplicates)
 	. = ..()
 	if(!.)
 		return FALSE
@@ -21,7 +21,7 @@
 
 	return TRUE
 
-/datum/brother_objective/supermatter_sabotage/generate_objective(datum/mind/generating_for, list/possible_duplicates)
+/datum/objective/supermatter_sabotage/generate_objective(datum/mind/generating_for, list/possible_duplicates)
 	var/list/possible_areas = GLOB.the_station_areas.Copy()
 	for(var/area/possible_area as anything in possible_areas)
 		//remove areas too close to the destination, too obvious for our poor shmuck, or just unfair
@@ -33,13 +33,13 @@
 	replace_in_name("%AREA%", initial(dest_crystal_area_pickup.name))
 	return TRUE
 
-/datum/brother_objective/supermatter_sabotage/generate_ui_buttons(mob/user)
+/datum/objective/supermatter_sabotage/generate_ui_buttons(mob/user)
 	var/list/buttons = list()
 	if(!sent_crystal)
 		buttons += add_ui_button("", "Pressing this will call down a pod with the supermatter cascade kit.", "biohazard", "destabilizing_crystal")
 	return buttons
 
-/datum/brother_objective/supermatter_sabotageui_perform_action(mob/living/user, action)
+/datum/objective/supermatter_sabotageui_perform_action(mob/living/user, action)
 	. = ..()
 	switch(action)
 		if("destabilizing_crystal")
@@ -55,3 +55,32 @@
 				"style" = /datum/pod_style/syndicate,
 				"spawn" = /obj/item/cascade_emitter_kit,
 			))
+
+// /datum/team/brother_team/forge_brother_objectives()
+// 	objectives = list()
+
+// 	add_objective(new /datum/objective/convert_brother)
+
+// 	var/is_hijacker = prob(10)
+// 	for(var/i = 1 to max(1, CONFIG_GET(number/brother_objectives_amount) + (brothers_left > 2) - is_hijacker))
+// 		forge_single_objective()
+// 	if(is_hijacker)
+// 		if(!locate(/datum/objective/hijack) in objectives)
+// 			add_objective(new /datum/objective/hijack)
+// 	else if(!locate(/datum/objective/escape) in objectives)
+// 		add_objective(new /datum/objective/escape)
+
+// /datum/team/brother_team/proc/forge_single_objective()
+// 	if(prob(50))
+// 		if(LAZYLEN(active_ais()) && prob(100/GLOB.joined_player_list.len))
+// 			add_objective(new /datum/objective/destroy, needs_target = TRUE)
+// 		else if(prob(30))
+// 			add_objective(new /datum/objective/maroon, needs_target = TRUE)
+// 		else
+// 			add_objective(new /datum/objective/assassinate, needs_target = TRUE)
+// 	else
+// 		add_objective(new /datum/objective/steal, needs_target = TRUE)
+
+// /datum/objective/convert_brother
+// 	explanation_text = "Convert a brainwashable person using your Blood Bonds ability."
+
