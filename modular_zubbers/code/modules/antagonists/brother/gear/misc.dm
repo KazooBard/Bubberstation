@@ -8,6 +8,10 @@
 	desc = "A two-use, classical manual containing the techniques necessary for unhindered piggyback-riding, carrying, instant aggressive grabs on your partner and proper technique to avoid slowing down when dragging others."
 	spawn_path = /obj/item/book/granter/martial/gymnastics
 
+/datum/bb_gear/overwatch
+	name = "Overwatch/Agent Kit"
+	desc = "A box containing an old-fashioned hacking laptop, coming with all the tools an up and coming agent would need to remotely open doors for and watch over their partner with."
+	spawn_path = /obj/item/storage/box/syndie_kit/overwatch
 
 // GYMNASTICS GRANTER
 
@@ -21,8 +25,7 @@
 
 	greet = span_sciradio("You've learned advanced gymnastical routines, allowing you to quickly carry your partner as well as grab them twice as fast any non-proffessional would!")
 	icon = 'icons/obj/scrolls.dmi'
-	icon_state = "sleepingcarp"
-	worn_icon_state = "scroll"
+	icon_state = "cqcmanual"
 	remarks = list(
 		"Hold hands... Leg on knee.. And up I go, this looks managable...",
 		"Huh, it sure would suck to have a person at me...",
@@ -39,9 +42,8 @@
 /obj/item/book/granter/martial/gymnastics/update_appearance(updates)
 	. = ..()
 	if(uses <= 0)
-		name = "empty scroll"
-		desc = "It's completely blank."
-		icon_state = "blankscroll"
+		name = "useless book"
+		desc = "It's illegible."
 	else
 		name = initial(name)
 		desc = initial(desc)
@@ -75,7 +77,7 @@
 
 	var/old_grab_state = attacker.grab_state
 	defender.grabbedby(attacker, TRUE)
-	if(old_grab_state == GRAB_PASSIVE && locate(/datum/martial_art/gymnastics) in defender.martial_arts)
+	if(old_grab_state == GRAB_PASSIVE && locate(/datum/martial_art/gymnastics) in defender.martial_arts && attacker.combat_mode)
 		attacker.setGrabState(GRAB_AGGRESSIVE) //Instant aggressive grab if it's another gymnast
 		log_combat(attacker, defender, "grabbed", addition="aggressively")
 		defender.visible_message(
@@ -87,15 +89,99 @@
 		)
 		to_chat(attacker, span_danger("You expertly grab your fellow gymnast, [defender]!"))
 
+// OVERWATCH KIT
 
-/mob/living/setGrabState(newstate)
+/obj/item/storage/box/syndie_kit/overwatch
+	name = "Overwatch/Agent Kit"
+
+/obj/item/hacktop
+	name = "Conspicuous Laptop"
+	desc = "Nothing good can come out of this laptop's use, surely..."
+	icon = 'icons/obj/devices/modular_laptop.dmi'
+	icon_state = "laptop"
+	var/other_pair
+	var/mode = 0
+
+/obj/item/hacktop/attack_self(mob/user, modifiers)
 	. = ..()
-	switch(grab_state)
-		if(GRAB_PASSIVE)
-			remove_movespeed_modifier(MOVESPEED_ID_MOB_GRAB_STATE)
-		if(GRAB_AGGRESSIVE)
-			add_movespeed_modifier(/datum/movespeed_modifier/grab_slowdown/aggressive)
-		if(GRAB_NECK)
-			add_movespeed_modifier(/datum/movespeed_modifier/grab_slowdown/neck)
-		if(GRAB_KILL)
-			add_movespeed_modifier(/datum/movespeed_modifier/grab_slowdown/kill)
+	if(!other_pair)
+		balloon_alert(user, "no doorbug linked!")
+		return
+	if(!other_pair.last_checked_airlock)
+		balloon_alert(user, "no airlock linked through doorbug!")
+		return
+	var/obj/machinery/door/airlock/target_airlock = other_pair.last_checked_airlock
+	var/dist_between = get_dist(get_turf(other_pair), get_turf(src))
+	var/to_move_till_usable = 10 - dist_between
+	if(dist_between < 9)
+		balloon_alert(user, "the doorbug's signal is causing interference, move away from it! ([to_move_till_usable] more)")
+	if(mode == 0) //open airlocks
+		if(do_after(user, 4 SECONDS, target = src))
+			if(target_airlock.density)
+				target_airlock.open()
+				continue
+			target_airlock.close(force_crush = TRUE)
+
+	if(mode == 1) //bolt airlocks
+		if(do_after(user, 1 SECONDS, target = src))
+			if(target_airlock.locked)
+				target_airlock.secure_open
+				continue
+			target_airlock.secure_close()
+
+	if(mode == 2) //shock airlocks
+		if(do_after(user, 2 SECONDS, target = src))
+			if(wires.is_cut(WIRE_SHOCK))
+				to_chat(user, span_warning("Can't un-electrify the airlock - The electrification wire is cut."))
+			else if(isElectrified())
+				set_electrified(MACHINE_NOT_ELECTRIFIED)
+			else if(!isElectrified())
+				set_electrified(MACHINE_ELECTRIFIED_PERMANENT)
+
+/obj/item/hacktop/attackby(obj/item/attacking_item, mob/user, list/modifiers, list/attack_modifiers)
+	. = ..()
+	if(istype(attacking_item, /obj/item/doorbug))
+		var/obj/item/doorbug/our_doorbug = attacking_item
+		our_doorbug.other_pair = src
+		src.other_pair = our_doorbug
+		balloon_alert(user, "linked!")
+
+
+/obj/item/hacktop/attack_self_secondary(mob/user, modifiers)
+	. = ..()
+	mode++
+	if(mode > 2)
+		mode = 0
+	var/mode_to_text
+	switch(mode)
+		if(0)
+			mode_to_text = "opening/closing"
+		if(1)
+			mode_to_text = "force opening/bolting shut"
+		if(2)
+			mode_to_text = "electrifying/de-electrifying"
+
+	balloon_alert(user, "set to [mode_to_text]")
+
+/obj/item/doorbug
+	name = "Conspicuous Tool"
+	desc = "A suspicious widget, cobbled together from various materials. How odd..."
+	icon =
+	icon_state =
+	var/other_pair
+	var/last_checked_airlock
+
+/obj/item/doorbug/interact_with_atom(atom/interacting_with, mob/living/user, list/modifiers)
+	. = ..()
+	if(istype(interacting_with, /obj/machinery/door/airlock))
+		var/obj/machinery/door/airlock/our_airlock = interacting_with
+		last_checked_airlock = our_airlock
+
+/obj/item/storage/box/syndie_kit/overwatch/PopulateContents()
+	new	/obj/item/computer_disk/syndicate(src)
+	var/obj/item/hacktop/a = new(src)
+	var/obj/item/doorbug/b = new(src)
+
+	A.other_pair = B
+	B.other_pair = A
+
